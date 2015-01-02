@@ -1,0 +1,40 @@
+* {
+	font-family: Tahoma, Verdana, Arial, sans-serif;
+	font-size: 100%;
+}
+
+body {
+	display: block;
+	width: 50%;
+	margin: 10px auto 10px auto;
+	background-color: #fff;
+}
+
+a {
+	text-decoration: none;
+}
+
+h2 {
+	text-align: center;
+}
+
+div.user-info {
+	clear: both;
+	background-color: #fff;
+	margin: 50px 0px;
+	border: 1px #eee solid;
+}
+
+div.user-image img {
+	float: left;
+	width: 72px;
+	height: 72px;
+	margin-right: 16px;
+}
+
+div.user-name {
+	padding-top: 9px;
+}
+
+div.user-date {
+	padding-bottom: 9px;

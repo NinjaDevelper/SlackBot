@@ -1,0 +1,49 @@
+<?php
+
+// From https://stackoverflow.com/questions/2915864/php-how-to-find-the-time-elapsed-since-a-date-time
+
+function humanTiming ($time) {
+    $time = time() - strtotime($time); // to get the time since that moment
+    
+    $tokens = array (
+        31536000 => 'year',
+        2592000 => 'month',
+        604800 => 'week',
+        86400 => 'day',
+        3600 => 'hour',
+        60 => 'minute',
+        1 => 'second'
+    );
+
+    foreach ($tokens as $unit => $text) {
+        if ($time < $unit) continue;
+        $numberOfUnits = floor($time / $unit);
+        return $numberOfUnits.' '.$text.(($numberOfUnits>1)?'s':'');
+    }
+}
+
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<link href="css/style.css" rel="stylesheet">
+	<title>What users have been up to...</title>
+</head>
+<body>
+<h2>What the Storj.io Developers are working on...</h2>
+	<div class="user-info" tal:repeat="user users">
+		<div class="user-image">
+			<img tal:attributes="src user.image">
+		</div>
+		<div class="user-name">
+		<a href="" tal:attributes="href user.twitter"><span tal:content="user.name" /></a>
+		</div>
+		<div class="user-text" tal:content="user.text">
+		</div>
+		<div class="user-date">
+		<?php echo humanTiming("${structure:user.ts}") . " ago"; ?>
+		</div>
+	</div>
+</body>
+</html>
+
