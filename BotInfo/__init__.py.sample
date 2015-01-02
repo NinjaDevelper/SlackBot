@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Bot Information
+
+class botData:
+	token_id      = ""
+	user_id       = ""
+	channel_id    = ""
+	status_file   = './slackwatch.json'
+	template_file = 'html/index.template'
+	output_file   = 'html/index.php'
+	sleep_time    = 5.0
+
+
