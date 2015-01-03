@@ -12,5 +12,7 @@ class botData:
 	template_file = 'html/index.template'
 	output_file   = 'html/index.php'
 	sleep_time    = 5.0
-
+	key_file      = ""
+	listen_ip     = ""
+	listen_port   = 0
 
