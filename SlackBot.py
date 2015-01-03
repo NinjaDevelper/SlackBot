@@ -12,10 +12,18 @@ import json
 
 from SlackCore import SlackInteractor
 from SlackCore import SlackRTM
+from SlackCore import PostHandler
 from BotInfo import botData
+import BaseHTTPServer, SimpleHTTPServer
+import ssl
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
+
+server        = BaseHTTPServer.HTTPServer(('209.141.47.51', 12345), PostHandler)
+server.socket = ssl.wrap_socket (server.socket, certfile='/etc/ssl/certs/storj.crt', server_side=True)
+print 'Starting server, use <Ctrl-C> to stop'
+server.serve_forever()
 
 def RTMRunner():
 	rtm    = SlackRTM()

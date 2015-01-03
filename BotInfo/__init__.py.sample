@@ -4,6 +4,7 @@
 # Bot Information
 
 class botData:
+	hook_token    = ""
 	token_id      = ""
 	user_id       = ""
 	channel_id    = ""
