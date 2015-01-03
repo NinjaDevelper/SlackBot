@@ -27,17 +27,18 @@ def ClientRunner():
 	client.SetupJson()
 	client.CheckMessages(100)
 	client.SaveJson()
+	print "- Initial Channel History Scan Complete."
 	while True:
 		if client.CheckMessages(10) > 0:
 			client.SaveJson()
 			print "Time to output new template..."
 			client.OutputTemplate()
 			client.newEntries = 0
-			time.sleep(30)
+			time.sleep(2)
 		else:
 			# print "No new template needed."
 			client.CheckRefresh()
-			time.sleep(10)
+			time.sleep(2)
 
 def doTemplate():
 	client = SlackInteractor()
@@ -71,14 +72,9 @@ def doDump():
 
 def doTest():
 	print "Testing..."
-	rtm    = SlackRTM(False)
-	data = {
-		'type': 'message',
-		'text': '.undo',
-		'user': 'U02FSFYNG'
-	}
-	print rtm.MessageParser(data)
-
+	test  = SlackInteractor()
+	test.SetupJson()
+	test.SetAdmins()
 	
 args = len(sys.argv)
 if args > 1:

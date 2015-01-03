@@ -55,6 +55,9 @@ class SlackRTM(object):
 		else:
 			self.ws     = websocket.WebSocket()
 
+	def SetupRegex(self):
+	
+
 	# These exist in SlackInteractor
 	def SetupJson(self):
 		global lock
@@ -88,15 +91,21 @@ class SlackRTM(object):
 				status_out.close()
 		return 0
 
+	def IsAdmin(self, user):
+		self.SetupJson()
+		if user in self.botJson['admins']:
+			return True
+		else:
+			return False
 		
-	def SendChannelMessage(self, text):
+	def SendChannelMessage(self, channel, text):
 		self.sendId += 1
 		print "Response: " + text
 		try:
 			self.ws.send(json.dumps({
 				"id": self.sendId,
 				"type": "message",
-				"channel": botData.channel_id,
+				"channel": channel,
 				"text": text
 			}))
 			return self.ws.recv()
@@ -131,29 +140,29 @@ class SlackRTM(object):
 				regenTest    = self.regenCheck.match(data['text'])
 				
 				if updateTest:
-					self.SendChannelMessage("<@" + data['user'] + ">: Acknowledged.")
+					self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: Acknowledged.")
 					# Check to see if Twitter account is set.
 					self.SetupJson()
 					if data['user'] not in self.botJson['twitter']:
-						self.SendChannelMessage("<@" + data['user'] + ">: Set your twitter handle or no templates will be updated.")
-						self.SendChannelMessage("<@" + data['user'] + ">: Use .twitter <handle> .")
+						self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: Set your twitter handle or no templates will be updated.")
+						self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: Use .twitter <handle> .")
 				elif meloticTest:
-					self.SendChannelMessage("Melotic SJCX/BTC: " + str(self.GetExRate("melotic")))
+					self.SendChannelMessage(data['channel'], "Melotic SJCX/BTC: " + str(self.GetExRate("melotic")))
 				elif poloniexTest:
-					self.SendChannelMessage("Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")))
+					self.SendChannelMessage(data['channel'], "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")))
 				elif marketsTest:
-					self.SendChannelMessage("Melotic SJCX/BTC: " + str(self.GetExRate("melotic")))
-					self.SendChannelMessage("Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")))
+					self.SendChannelMessage(data['channel'], "Melotic SJCX/BTC: " + str(self.GetExRate("melotic")))
+					self.SendChannelMessage(data['channel'], "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")))
 				elif balanceTest:
 					addr = balanceTest.group(1)
-					self.SendChannelMessage("Balance for address " + addr + ": " + 
-					str(self.GetBalance(addr)) + " SJCX")
+					balance = str(self.GetBalance(addr))
+					self.SendChannelMessage(data['channel'], "Balance for address " + addr + ": " + balance + " SJCX")
 				elif twitterTest:
 					twitAddr = twitterTest.group(1)
 					self.SetupJson()
 					self.botJson['twitter'][data['user']] = twitAddr
 					self.SaveJson()
-					self.SendChannelMessage("<@" + data['user'] + ">: Your twitter handle is now '" + twitAddr + "'.")
+					self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: Your twitter handle is now '" + twitAddr + "'.")
 				elif undoTest:
 					self.SetupJson()
 					print "Current update contains: " + self.botJson['updates'][data['user']]['text']
@@ -162,12 +171,12 @@ class SlackRTM(object):
 					print "Current update now contains: " + self.botJson['updates'][data['user']]['text']
 					self.botJson['parseTemplate'] = True
 					self.SaveJson()
-					self.SendChannelMessage("<@" + data['user'] + ">: I have undone your last update and requested a template refresh.")
+					self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: I have undone your last update and requested a template refresh.")
 				elif regenTest:
 					self.SetupJson()
 					self.botJson['parseTemplate'] = True
 					self.SaveJson()
-					self.SendChannelMessage("<@" + data['user'] + ">: Template refresh requested.")				
+					self.SendChannelMessage(data['channel'], "<@" + data['user'] + ">: Template refresh requested.")				
 			except:
 				print "Exception in user code:"
 				print '-'*60
@@ -201,14 +210,6 @@ class SlackInteractor(object):
 		if os.path.isfile(botData.status_file):
 			self.fileMod     = time.ctime(os.path.getmtime(botData.status_file))
 
-	def GetUser(self, user_id):
-		req = self.client._make_request('users.info', {'user': user_id})
-		self.botJson['users'][req['user']['id']] = req['user']
-		return 0
-
-	def GetHistory(self, count):
-		return self.client._make_request('channels.history', {'channel': botData.channel_id, 'count': count})
-
 	def SetupJson(self):
 		global lock
 		#lock = thread.allocate_lock()
@@ -229,9 +230,10 @@ class SlackInteractor(object):
 			                    "text": "",
 			                    "ts": "0",
 			                    "user": ""
-			                }
+			                },
+			                "admins": {}
 				}
-		return 0
+		return True
 
 	def SaveJson(self):
 		global lock
@@ -239,7 +241,30 @@ class SlackInteractor(object):
 			with open(botData.status_file, 'w') as status_out:
 				json.dump(self.botJson, status_out)
 				status_out.close()
-		return 0
+		return True
+
+	def GetUser(self, user_id):
+		req = self.client._make_request('users.info', {'user': user_id})
+		self.botJson['users'][req['user']['id']] = req['user']
+		return True
+
+	def GetChannels(self):
+		list = self.client._make_request('channels.list', {})
+		if list['ok'] is True:
+			return list
+		else:
+			print "Uh oh:"
+			print json.dumps(list, indent=4)
+			return list
+
+	def GetHistory(self, channel, count):
+		list = self.client._make_request('channels.history', {'channel': channel, 'count': count})
+		if list['ok'] is True:
+			return list
+		else:
+			print "Uh oh:"
+			print json.dumps(list, indent=4)
+			return list
 
 	def CheckRefresh(self):
 		if 'parseTemplate' in self.botJson:
@@ -252,45 +277,63 @@ class SlackInteractor(object):
 				print "Generating new template..."
 				self.OutputTemplate()
 				self.SaveJson()
-
+				
 	def CheckMessages(self, count):
 		if not os.path.isfile(botData.status_file):
 			return # Quit out for now
 		if self.fileMod != time.ctime(os.path.getmtime(botData.status_file)):
 			self.SetupJson() # Refresh, its changed
-		history = self.GetHistory(count)
 
-		self.storeTs    = 0 # Latest Timestamp Stuff
 		self.newEntries = 0 # Reset for run
-
-		# Iterate through quick and see if the timestamp is newer than the one saved
-		for m in history['messages']:
-		        if self.storeTs == 0:
-				self.storeTs = m['ts']
-		        matchTest = self.searchRegex.match(m['text'])
-		        if matchTest:
-	        	        self.botJson['last_match'] = m
-	        	        m['text'] = matchTest.group(2).strip() # Only the last part
-			        if m['user'] in self.botJson['updates']:
-			        	if m['ts'] <= self.botJson['updates'][m['user']]['ts']:
-			                	continue
-				self.newEntries += 1
-                		try:
-					test = self.botJson['users'][m['user']]
-		                except:
-		                        self.GetUser(m['user'])
-		                        time.sleep(botData.sleep_time)
-		                if m['user'] in self.botJson['undo']:
-				        old = self.botJson['updates'][m['user']]
-				        self.botJson['undo'][m['user']] = old # Copy before replace
-				        self.botJson['updates'][m['user']] = m # Update this user with latest post
-				else:
-					self.botJson['undo'][m['user']] = m # Set them both to the same to start
-					self.botJson['updates'][m['user']] = m
+			
+		# Step 1, get channel list
+		channels = self.GetChannels()
+		if channels['ok'] is True:
+			# Iterate
+			time.sleep(1.5)
+			channels = channels['channels'] # Bring it down one
+			for k in channels:
+				# print json.dumps(channels['channels'][0][key], indent=4)
+				# print "Checking channel " + k['id'] + "..."
+				history = self.GetHistory(k['id'], count)
+				for m in history['messages']:
+					# Skip it if its not a textual message
+					if 'text' not in m:
+						continue
+					try:
+						matchTest = self.searchRegex.match(m['text'])
+					except:
+						# print "Exception in user code:"
+						# print '-'*60
+						# traceback.print_exc(file=sys.stdout)
+						# print '-'*60
+						print json.dumps(m, indent=4)
 					
+					if matchTest:
+						self.botJson['last_match'] = m
+						m['text'] = matchTest.group(2).strip() # Only the last part
+						if m['user'] in self.botJson['updates']:
+							if m['ts'] <= self.botJson['updates'][m['user']]['ts']:
+								continue
+						self.newEntries += 1
+						try:
+							test = self.botJson['users'][m['user']]
+						except:
+						        self.GetUser(m['user'])
+						        time.sleep(botData.sleep_time)
+						if m['user'] in self.botJson['undo']:
+							old = self.botJson['updates'][m['user']]
+							self.botJson['undo'][m['user']] = old # Copy before replace
+							self.botJson['updates'][m['user']] = m # Update this user with latest post
+						else:
+							self.botJson['undo'][m['user']] = m # Set them both to the same to start
+							self.botJson['updates'][m['user']] = m
 
-		if self.botJson['last']['ts'] < self.storeTs:
-			self.botJson['last']['ts'] = self.storeTs # Update to latest timestamp
+				time.sleep(1.5)
+		else:
+			print "Error getting channel list!"
+			print json.dumps(channels, indent=4)
+		
 		if self.newEntries > 0:
 			self.SaveJson()
 			return 1
@@ -329,4 +372,4 @@ class SlackInteractor(object):
 				template_out.write(template(users=tdata))
 				template_out.close()
 		
-		
+
