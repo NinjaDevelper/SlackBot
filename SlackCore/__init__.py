@@ -55,7 +55,7 @@ class PostHandler(BaseHTTPRequestHandler):
 				self.wfile.write(response)
 				return
 
-		rtm      = SlackRTM(False) # Init without socket
+		rtm      = SlackResponder(False) # Init without socket
 		response = rtm.Parse(jsonData)
 		logger.debug(response)
 		self.wfile.write(json.dumps({"text": response}))
@@ -68,14 +68,14 @@ class PostHandler(BaseHTTPRequestHandler):
 		self.rfile.close()
 
 
-class SlackRTM(object):
+class SlackResponder(object):
 
 	# Messages we understand and parse
 	hooks = {
 		"status" : 	"^(\.status) (.*)$",
 		"balance" :	"^(\.balance) ([A-Za-z0-9]{25,36})$",
 		"twitter" : 	"^(\.twitter) ([\w]+)$",
-		"add":    	"^(\.add) \<\@([\w]+)\>",
+		"add":    	"^(\.add) \<\@([\w]+)\> ?(admin|superuser)?",
 		"del":		"^(\.del) \<\@([\w]+)\>",
 		"hide":		"^(\.hide) \<\@([\w]+)\>",
 		"show":		"^(\.show) \<\@([\w]+)\>",
@@ -87,6 +87,7 @@ class SlackRTM(object):
 		"undo" : 	"^\.undo",
 		"regen" :  	"^\.regen"
 	}
+	
 	
 	def __init__(self, connect=True):
 		# Lets get set up
@@ -118,13 +119,9 @@ class SlackRTM(object):
 				"users": {},
 				"updates": [],
 				"twitter": {},
-				"last_match": {},
-				"last": {
-			            "text": "",
-			            "ts": "0",
-			            "user": ""
-			        },
+				"undo": {},
 			        "admins": [],
+			        "superusers": [],
 			        "hidden": []
 			}
 		return 0
@@ -154,6 +151,7 @@ class SlackRTM(object):
 			
 	def _Process(self, matchData, jsonData):
 		logger = logging.getLogger("SlackBot")
+		self.SetupJson() # Read it in now just in case
 
 		# Clear out some old data
 		try:
@@ -165,73 +163,95 @@ class SlackRTM(object):
 		except:
 			pass
 		
-		isOwner = False
-		isAdmin = False
+		isAdmin = False # Is a registered poster
+		isSuper = False # Is a super user
+		isOwner = False # Bot owner
 		
-		if self.IsAdmin(jsonData['user_id']) == True:
+		id jsonData['user_id'] in self.botJson['admins']:
 			isAdmin = True
+		if jsonData['user_id'] in self.botJson['superusers']:
+			isSuper = True
 		if jsonData['user_id'] == botData.owner_id:
 			isOwner = True
-		
+			
 		k = matchData[0]
 		# Is it a multi-item index? i.e. two values
 		if not isinstance(k, basestring):
 			if len(k) == 2:
 				trigger  = k[0]
 				argument = k[1]
-			
-			if trigger == ".balance":
-				balance = str(self.GetBalance(argument))
-				return "Balance for address " + v + ": " + balance + " SJCX"
-			elif trigger == ".twitter":
-				self.SetupJson()
-				self.botJson['twitter'][jsonData['user_id']] = argument
-				self.SaveJson()
-				return "<@" + jsonData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
-			elif trigger == ".status":
-				self.SetupJson()
-				self.updateStatus(matchData, jsonData)
-				self.SaveJson()
-				self.outputTemplate()
-				return "<@" + jsonData['user_id'] + ">: Status update accepted, template updated."
-			elif trigger == ".add" or trigger == ".del" or trigger == ".show" or trigger == ".hide":
-				if isAdmin == False and isOwner == False:
-					return "<@" + jsonData['user_id'] + ">: You are not a registered bot user."
-				# Is the owner trying to be added or deleted?
-				if trigger == ".add" or trigger == ".del":
-					if str(argument) == str(botData.owner_id):
-						return "<@" + jsonData['user_id'] + ">: Cannot perform actions on bot owner."
+				# Third value for a user class (for .add)
+				if trigger == ".add":
+					try:
+						userClass = k[2]
+					except:
+						userClass = ""
+				
+				if trigger == ".balance":
+					balance = str(self.GetBalance(argument))
+					return "Balance for address " + v + ": " + balance + " SJCX"
+				elif trigger == ".twitter":
 					self.SetupJson()
-					if trigger == ".add":
-						if argument in jsonData['admins']:
-							return "<@" + jsonData['user_id'] + ">: Action not needed."
-						self.botJson['admins'].append(argument)
-						self.SaveJson()
-						return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added."
-					elif trigger == ".del":
-						if argument not in jsonData['admins']:
-							return "<@" + jsonData['user_id'] + ">: Action not needed."
-						self.botJson['admins'].remove(argument)
-						self.SaveJson()
-						return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> removed."
-				elif trigger == ".show" or trigger == ".hide":
+					self.botJson['twitter'][jsonData['user_id']] = argument
+					self.SaveJson()
+					return "<@" + jsonData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
+				elif trigger == ".status":
 					self.SetupJson()
-					if trigger == ".hide":
-						if argument in jsonData['hidden']:
-							return "<@" + jsonData['user_id'] + ">: Action not needed."
-						self.botJson['hidden'].append(argument)
-						self.SaveJson()
-						self.outputTemplate()
-						return "<@" + jsonData['user_id'] + ">: Posts by <@" + argument + "> are now hidden.\nTemplate refreshed."
-					if trigger == ".show":
-						if argument not in jsonData['hidden']:
-							return "<@" + jsonData['user_id'] + ">: Action not needed."
-						self.botJson['hidden'].remove(argument)
-						self.SaveJson()
-						self.outputTemplate()
-						return "<@" + jsonData['user_id'] + ">: Updates by <@" + argument + "> are now seen.\nTemplate refreshed."
-			else:
-				return "No response to give!"
+					self.updateStatus(matchData, jsonData)
+					self.SaveJson()
+					self.outputTemplate()
+					return "<@" + jsonData['user_id'] + ">: Status update accepted, template updated."
+				elif trigger == ".add" or trigger == ".del" or trigger == ".show" or trigger == ".hide":
+					if isAdmin == False and isSuper == False and isOwner == False:
+						return "<@" + jsonData['user_id'] + ">: You are not an authorised user."
+					# Is the owner trying to be added or deleted?
+					if trigger == ".add" or trigger == ".del":
+						if str(argument) == str(botData.owner_id):
+							return "<@" + jsonData['user_id'] + ">: Cannot perform actions on bot owner."
+						self.SetupJson()
+						if trigger == ".add":
+							if userClass == "superusers":
+								if argument in jsonData['superusers']:
+									return "<@" + jsonData['user_id'] + ">: Action not needed."
+								self.botJson['superusers'].append(argument)
+								self.SaveJson()
+								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to superusers."
+							else:
+								if argument in jsonData['admins']:
+									return "<@" + jsonData['user_id'] + ">: Action not needed."
+								self.botJson['admins'].append(argument)
+								self.SaveJson()
+								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to authorised users."
+						elif trigger == ".del": # Removes from either list
+							if argument in jsonData['admins']:
+								self.botJson['admins'].remove(argument)
+								self.SaveJson()
+								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> removed."
+							elif argument in jsonData['superusers']:
+								self.botJson['superusers'].remove(argument)
+								self.SaveJson()
+								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> removed."
+							else:
+								return "<@" + jsonData['user_id'] + ">: Action not needed."
+
+					elif trigger == ".show" or trigger == ".hide":
+						self.SetupJson()
+						if trigger == ".hide":
+							if argument in jsonData['hidden']:
+								return "<@" + jsonData['user_id'] + ">: Action not needed."
+							self.botJson['hidden'].append(argument)
+							self.SaveJson()
+							self.outputTemplate()
+							return "<@" + jsonData['user_id'] + ">: Posts by <@" + argument + "> are now hidden.\nTemplate refreshed."
+						if trigger == ".show":
+							if argument not in jsonData['hidden']:
+								return "<@" + jsonData['user_id'] + ">: Action not needed."
+							self.botJson['hidden'].remove(argument)
+							self.SaveJson()
+							self.outputTemplate()
+							return "<@" + jsonData['user_id'] + ">: Updates by <@" + argument + "> are now seen.\nTemplate refreshed."
+				else:
+					return "No response to give!"
 		elif k == ".list":
 			admins = []
 			for k in jsonData['admins']:
@@ -295,11 +315,13 @@ class SlackRTM(object):
 			return True
 		else:
 			return False
+
 		
 	def GetBalance(self, address):
 		test = requests.get("http://api.blockscan.com/api2?module=address&action=balance&asset=SJCX&btc_address=" + address).json()
 		if test['status'] == "success":
 			return test['data'][0]['balance']
+			
 
 	def GetExRate(self, exchange):
 		if exchange == "melotic":
@@ -324,6 +346,9 @@ class SlackRTM(object):
 
 		tdata = []
 		for key, val in findLatest:
+			# Is this a hidden post?
+			if self.botJson['updates'][key]['user'] in self.botJson['hidden']:
+				continue
 			if self.botJson['updates'][key]['user'] not in self.botJson['twitter']:
 				dick = self.botJson['users'][self.botJson['updates'][key]['user']]['profile']['real_name']
 				print "Cannot process entry for " + dick + ", does not have twitter account set up."
@@ -339,7 +364,7 @@ class SlackRTM(object):
 				"ts": datetime.datetime.fromtimestamp(float(self.botJson['updates'][key]['ts'])).strftime('%Y-%m-%d %H:%M:%S')
 			})
 
-			pt_loader = TemplateLoader(['/var/www/html/'], auto_reload=True)
+			pt_loader = TemplateLoader(['html/'], auto_reload=True)
 			template  = pt_loader.load('index.template')
 			with open(botData.output_file, 'w') as template_out:
 				template_out.write(template(users=tdata))

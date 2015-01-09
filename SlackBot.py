@@ -12,7 +12,6 @@ import BaseHTTPServer
 import SocketServer
 
 from BotInfo import botData
-#from SlackCore import SlackRTM
 from SlackCore import PostHandler
 
 reload(sys)
