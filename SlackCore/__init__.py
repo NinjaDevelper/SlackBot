@@ -15,9 +15,9 @@ from chameleon.zpt.loader import TemplateLoader
 from pyslack import SlackClient
 from BotInfo import botData
 from operator import itemgetter
+from datetime import date
 
 class PostHandler(BaseHTTPRequestHandler):
-
 	def setup(self):
 		self.connection = self.request
 		self.rfile = self.connection.makefile('rb', self.rbufsize)
@@ -167,7 +167,7 @@ class SlackResponder(object):
 		isSuper = False # Is a super user
 		isOwner = False # Bot owner
 		
-		id jsonData['user_id'] in self.botJson['admins']:
+		if jsonData['user_id'] in self.botJson['admins']:
 			isAdmin = True
 		if jsonData['user_id'] in self.botJson['superusers']:
 			isSuper = True
@@ -370,4 +370,38 @@ class SlackResponder(object):
 				template_out.write(template(users=tdata))
 				template_out.close()
 
+
+# Backup System
+class SlackBackup(object):
+	def __init__(self):
+		if botData.backup_path == "":
+			return # No Need
+		bPath = botData.backup_path
+		if bPath[-1] == "/": # Is there a trailing slash?
+			bPath = bPath[:-1]
+			
+		t = date.today()
+		suffix = t.strftime("%Y-%m-%d")
+		backupFile = bPath + "/" + botData.status_file + "." + suffix
+		
+		if os.path.isfile(backupFile): # Does it exist already?
+			return
+			
+		fileIn  = open(botData.status_file, "r")
+		fileOut = open(backupFile, "w")
+		goIn = fileIn.read()
+		fileOut.write(goIn)
+		fileIn.close()
+		fileOut.close()
+		
+		# All done!
+		
+		
+		
+		
+		
+		
+		
+		
+	
 

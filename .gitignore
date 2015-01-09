@@ -1,3 +1,4 @@
 slackwatch.json
 *.log
 data/
+backups
