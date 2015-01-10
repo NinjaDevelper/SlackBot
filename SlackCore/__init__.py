@@ -88,6 +88,14 @@ class SlackResponder(object):
 		"regen" :  	"^\.regen"
 	}
 	
+	# User ability level
+	userLevel = {
+		"none": 0,
+		"user": 1,
+		"superuser": 2
+		"owner": 3
+	}
+	
 	
 	def __init__(self, connect=True):
 		# Lets get set up
@@ -120,8 +128,8 @@ class SlackResponder(object):
 				"updates": [],
 				"twitter": {},
 				"undo": {},
-			        "admins": [],
-			        "superusers": [],
+			        "admins": [botData.owner_id],
+			        "superusers": [botData.owner_id],
 			        "hidden": []
 			}
 		return 0
@@ -133,13 +141,54 @@ class SlackResponder(object):
 			status_out.close()
 		return 0
 
+
+	def PromoteUser(self, user=userJson, subject=argument, level=userLevel):
+		''' Promotes a user to a higher level so they can post updates, or at
+		superuser level they can promote other users to update posting level.
+		:param user: json dict representing the user data
+		:param subject: The user to act on
+		:param level: int user level to promote to, 1=user, 2=superuser
+		:return: String to send back to the user.
+		'''
+			
+	def DemoteUser(self, data=userJson, subject=argument, hide=False):
+		''' Demotes a user so they won't be allowed to post updates. Optional hide posts.
+		Doesn't matter what level they are, they're gone.
+		:param subject: The user to act upon
+		:param hide: Bool to hide posts by the user at the same time
+		:return: String to send back to the user
+		'''
+		
+	def HideUserPosts(self, user=userJson, subject=argument):
+		''' Hide posts by a user, refreshes template without that users posts.
+		:param user: json dict representing the user data
+		:param subject: The user to act upon
+		:return: String to send back to the user
+		''' 
+	
+	def ShowUserPosts(self, user=userJson, subject=argument):
+		''' Show posts by a user, refreshes template with that users posts.
+		:param user: json dict representing the user data
+		:param subject: The user to act upon
+		:return: String to send back to the user
+		'''
+		
+	def PostStatusUpdate(self, user=userJson, text=argument):
+		''' Creates a status update for a user, refreshes template.
+		:param user: json dict representing the user data
+		:param text: The status text the user wishes to post
+		:return: String to send back to the user
+		'''
+
+
 			
 	def Parse(self, jsonData):
 		logger = logging.getLogger("SlackBot")
 
 		# Verify Token
 		if jsonData['token'] != botData.hook_token:
-			return "Token from Slack does not match ours, ignoring."
+			logger.debug("Token from Slack does not match ours, ignoring.")
+			return
 			
 		logger.debug("Looking through hooks for a match...")
 		for key, val in self.triggers.iteritems():
@@ -147,6 +196,8 @@ class SlackResponder(object):
 			if test:
 				logger.debug("Got a match with: " + self.hooks[key])
 				return self._Process(re.findall(self.triggers[key], jsonData['text']), jsonData)
+		# Still here?
+		return "Huh?"
 
 			
 	def _Process(self, matchData, jsonData):
@@ -155,31 +206,28 @@ class SlackResponder(object):
 
 		# Clear out some old data
 		try:
-			del jsonData['token']
-			del jsonData['trigger_word']
-			del jsonData['team_id']
-			del jsonData['channel_name']
-			del jsonData['user_name']
+			del jsonData['token'], jsonData['trigger_word'], jsonData['team_id']
+			del jsonData['channel_name'], jsonData['user_name']
 		except:
 			pass
-		
-		isAdmin = False # Is a registered poster
-		isSuper = False # Is a super user
-		isOwner = False # Bot owner
-		
-		if jsonData['user_id'] in self.botJson['admins']:
-			isAdmin = True
-		if jsonData['user_id'] in self.botJson['superusers']:
-			isSuper = True
+
 		if jsonData['user_id'] == botData.owner_id:
-			isOwner = True
-			
-		k = matchData[0]
+			uLevel = this.userLevel['owner'] # 3
+		elif jsonData['user_id'] in self.botJson['superusers']:
+			uLevel = this.userLevel['superuser'] # 2
+		elif jsonData['user_id'] in self.botJson['admins']:
+			uLevel = this.userLevel['user'] # 1
+		else:
+			uLevel = this.userLevel['none'] # 0
+		
+		request = matchData[0]
+		
+		# k = matchData[0]
 		# Is it a multi-item index? i.e. two values
-		if not isinstance(k, basestring):
-			if len(k) == 2:
-				trigger  = k[0]
-				argument = k[1]
+		if not isinstance(request, basestring):
+			if len(request) == 2:
+				trigger  = request[0]
+				argument = request[1]
 				# Third value for a user class (for .add)
 				if trigger == ".add":
 					try:
@@ -188,22 +236,24 @@ class SlackResponder(object):
 						userClass = ""
 				
 				if trigger == ".balance":
-					balance = str(self.GetBalance(argument))
-					return "Balance for address " + v + ": " + balance + " SJCX"
+					balance = 
+					return "Balance for address " + argument + ": " + str(self.GetBalance(argument)) + " SJCX"
 				elif trigger == ".twitter":
 					self.SetupJson()
 					self.botJson['twitter'][jsonData['user_id']] = argument
 					self.SaveJson()
 					return "<@" + jsonData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
-				elif trigger == ".status":
-					self.SetupJson()
-					self.updateStatus(matchData, jsonData)
-					self.SaveJson()
-					self.outputTemplate()
-					return "<@" + jsonData['user_id'] + ">: Status update accepted, template updated."
-				elif trigger == ".add" or trigger == ".del" or trigger == ".show" or trigger == ".hide":
-					if isAdmin == False and isSuper == False and isOwner == False:
+				elif trigger == ".status" or trigger == ".add" or trigger == ".del" or trigger == ".show" or trigger == ".hide":
+					if uLevel == 0:
 						return "<@" + jsonData['user_id'] + ">: You are not an authorised user."
+					# Status update?
+					if trigger == ".status":
+						self.SetupJson()
+						self.updateStatus(matchData, jsonData)
+						self.SaveJson()
+						self.outputTemplate()
+						return "<@" + jsonData['user_id'] + ">: Status update accepted, template updated."
+
 					# Is the owner trying to be added or deleted?
 					if trigger == ".add" or trigger == ".del":
 						if str(argument) == str(botData.owner_id):
@@ -211,17 +261,23 @@ class SlackResponder(object):
 						self.SetupJson()
 						if trigger == ".add":
 							if userClass == "superusers":
-								if argument in jsonData['superusers']:
-									return "<@" + jsonData['user_id'] + ">: Action not needed."
-								self.botJson['superusers'].append(argument)
-								self.SaveJson()
-								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to superusers."
+								if isOwner == True:
+									if argument in jsonData['superusers']:
+										return "<@" + jsonData['user_id'] + ">: Action not needed."
+									self.botJson['superusers'].append(argument)
+									self.SaveJson()
+									return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to superusers."
+								else:
+									return "<@" + jsonData['user_id'] + ">: You are not authorised to add other superusers."
 							else:
-								if argument in jsonData['admins']:
-									return "<@" + jsonData['user_id'] + ">: Action not needed."
-								self.botJson['admins'].append(argument)
-								self.SaveJson()
-								return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to authorised users."
+								if isSuper == True:
+									if argument in jsonData['admins']:
+										return "<@" + jsonData['user_id'] + ">: Action not needed."
+									self.botJson['admins'].append(argument)
+									self.SaveJson()
+									return "<@" + jsonData['user_id'] + ">: User <@" + argument + "> added to authorised users."
+								else:
+									return "<@" + jsonData['user_id'] + ">: You are not authorised to add other users."
 						elif trigger == ".del": # Removes from either list
 							if argument in jsonData['admins']:
 								self.botJson['admins'].remove(argument)
@@ -235,21 +291,22 @@ class SlackResponder(object):
 								return "<@" + jsonData['user_id'] + ">: Action not needed."
 
 					elif trigger == ".show" or trigger == ".hide":
-						self.SetupJson()
-						if trigger == ".hide":
-							if argument in jsonData['hidden']:
-								return "<@" + jsonData['user_id'] + ">: Action not needed."
-							self.botJson['hidden'].append(argument)
-							self.SaveJson()
-							self.outputTemplate()
-							return "<@" + jsonData['user_id'] + ">: Posts by <@" + argument + "> are now hidden.\nTemplate refreshed."
-						if trigger == ".show":
-							if argument not in jsonData['hidden']:
-								return "<@" + jsonData['user_id'] + ">: Action not needed."
-							self.botJson['hidden'].remove(argument)
-							self.SaveJson()
-							self.outputTemplate()
-							return "<@" + jsonData['user_id'] + ">: Updates by <@" + argument + "> are now seen.\nTemplate refreshed."
+						if isAdmin == True:
+							self.SetupJson()
+							if trigger == ".hide":
+								if argument in jsonData['hidden']:
+									return "<@" + jsonData['user_id'] + ">: Action not needed."
+								self.botJson['hidden'].append(argument)
+								self.SaveJson()
+								self.outputTemplate()
+								return "<@" + jsonData['user_id'] + ">: Posts by <@" + argument + "> are now hidden.\nTemplate refreshed."
+							if trigger == ".show":
+								if argument not in jsonData['hidden']:
+									return "<@" + jsonData['user_id'] + ">: Action not needed."
+								self.botJson['hidden'].remove(argument)
+								self.SaveJson()
+								self.outputTemplate()
+								return "<@" + jsonData['user_id'] + ">: Updates by <@" + argument + "> are now seen.\nTemplate refreshed."
 				else:
 					return "No response to give!"
 		elif k == ".list":
@@ -282,6 +339,11 @@ class SlackResponder(object):
 			return "<@" + jsonData['user_id'] + ">: I have refreshed the template."
 		else:
 			return "No response to give!"
+
+# Processing
+
+# userJson
+# botJson
 
 
 	def GetUser(self, user_id):
@@ -404,4 +466,6 @@ class SlackBackup(object):
 		
 		
 	
+
+
 
