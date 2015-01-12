@@ -2,3 +2,4 @@ slackbot.json
 *.log
 data/
 backups
+test.py
