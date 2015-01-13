@@ -4,18 +4,20 @@
 # Bot Information
 
 class botData:
-	hook_token    = ""
-	token_id      = ""
-	user_id       = ""
-	owner_id      = "U03A8VAL0"
-	status_file   = './slackwatch.json'
-	template_file = 'html/index.template'
-	output_file   = 'html/index.php'
-	sleep_time    = 5.0
-	ssl_cert_file = ''
-	ssl_key_file  = ''
-	listen_ip     = ""
-	listen_port   = 0
-	log_file      = "slackbot.log"
-	backup_path   = ""
+	hook_token     = ""
+	token_id       = ""
+	user_id        = ""
+	owner_id       = "U03A8VAL0"
+	status_file    = './slackwatch.json'
+	template_file  = 'html/index.template'
+	output_file    = 'html/index.php'
+	sleep_time     = 5.0
+	ssl_cert_file  = ''
+	ssl_key_file   = ''
+	listen_ip      = ""
+	listen_port    = 0
+	log_file       = "slackbot.log"
+	backup_path    = ""
+	twitter_key    = ""
+	twitter_secret = ""
 
