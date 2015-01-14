@@ -33,6 +33,42 @@ function humanTiming ($time) {
 <h2>What the Storj.io Developers are working on...</h2>
 	<div class="user-info">
 		<div class="user-image">
+			<img src="https://secure.gravatar.com/avatar/4c0880cd2352fba1f40bde9ebb411e8c.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0007-72.png">
+		</div>
+		<div class="user-name">
+		<a href="https://twitter.com/frdwrd"><span>James Prestwich</span></a>
+		</div>
+		<div class="user-text">The world has stored over 140,000,000,000 GB so far this year. What did you do with your 20GB?</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-01-13 19:23:36") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
+			<img src="http://www.gravatar.com/avatar/d36605007c3afb6ec8f238fe8c562db3?s=72&amp;d=http%3A%2F%2Fstorj.sdo-srv.com%2Fstorjlogo.jpg">
+		</div>
+		<div class="user-name">
+		<a href="robamichael"><span>Rob Michael</span></a>
+		</div>
+		<div class="user-text">yay!</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-01-13 16:53:41") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
+		</div>
+		<div class="user-text">don't let me down</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-01-13 15:51:56") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-18/2555802270_72.jpg">
 		</div>
 		<div class="user-name">
@@ -45,18 +81,6 @@ function humanTiming ($time) {
 	</div>
  <div class="user-info">
 		<div class="user-image">
-			<img src="https://secure.gravatar.com/avatar/4c0880cd2352fba1f40bde9ebb411e8c.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0007-72.png">
-		</div>
-		<div class="user-name">
-		<a href="https://twitter.com/frdwrd"><span>James Prestwich</span></a>
-		</div>
-		<div class="user-text">Last year Seagate manufactured 226 million drives. 151 million of those ended up in PCs.</div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-01-02 00:41:29") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
 			<img src="https://secure.gravatar.com/avatar/47ea91e8096f914d22c7eb8d905fe9bf.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0004-72.png">
 		</div>
 		<div class="user-name">
@@ -65,18 +89,6 @@ function humanTiming ($time) {
 		<div class="user-text">upstream and storjtorrent now have 100% test coverage.</div>
 		<div class="user-date">
 		<?php echo humanTiming("2015-01-01 23:58:26") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
-			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
-		</div>
-		<div class="user-name">
-		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
-		</div>
-		<div class="user-text"></div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-01-01 23:42:58") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">

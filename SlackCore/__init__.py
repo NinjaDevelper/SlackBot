@@ -16,6 +16,7 @@ from pyslack import SlackClient
 from BotInfo import botData
 from operator import itemgetter
 from datetime import date
+from validate_email import validate_email
 
 class PostHandler(BaseHTTPRequestHandler):
 	def setup(self):
@@ -76,7 +77,7 @@ class SlackResponder(object):
 		"hide":		"^(\.hide) \<\@([\w]+)\>",
 		"show":		"^(\.show) \<\@([\w]+)\>",
 		"twitter": 	"^(\.twitter) ([\w]+)$",
-		"email":        "^(\.email) ([\w]+)$",
+		"email":        "^(\.email) \<mailto\:([\w+\.-@]+)|[\w+\.-@]+\>$",
 		"image":	"^(\.image) ([\w]+)$",
 		"name":		"^(\.name) (.*)$",
 		"status" : 	"^(\.status) (.*)$",
@@ -87,7 +88,8 @@ class SlackResponder(object):
 		"poloniex" :	"^\.poloniex",
 		"alts" : 	"^\.alts",
 		"undo" : 	"^\.undo",
-		"regen" :  	"^\.regen"
+		"regen" :  	"^\.regen",
+		"ping":		"^\.ping"
 	}
 	
 	# User ability level
@@ -202,7 +204,7 @@ class SlackResponder(object):
 				# Third value for a user class (for .add)
 				if trigger == ".add":
 					try:
-						userClass = k[2]
+						userClass = request[2]
 					except:
 						userClass = "admin"
 				elif trigger == ".del":
@@ -248,7 +250,7 @@ class SlackResponder(object):
 					return "Balance for address " + argument + ": " + str(self.GetBalance(argument)) + " SJCX"
 				elif trigger == ".twitter":
 					self.SetupJson()
-					self.botJson['twitter'][postData['user_id']] = argument
+					self.botJson['users'][postData['user_id']]['twitter'] = argument
 					self.SaveJson()
 					return "<@" + postData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
 				else:
@@ -271,6 +273,8 @@ class SlackResponder(object):
 		elif request == ".regen":
 			self.OutputTemplate()
 			return "<@" + postData['user_id'] + ">: I have refreshed the template."
+		elif request == ".ping":
+			return "PONG!"
 		else:
 			return "No response to give!"
 
@@ -314,13 +318,14 @@ class SlackResponder(object):
 		logger = logging.getLogger("SlackBot")
 		self.SetupJson()
 		logger.debug(json.dumps(user, indent=4))
-		if level == "superusers":
+		response = ""
+		if level == "superuser":
 			if user['uLevel'] >= 3:
-				if subject in self.botJson['superuser']:
+				if subject in self.botJson['superusers']:
 					return "<@" + user['user_id'] + ">: Action not needed."
 				self.botJson['superusers'].append(subject)
 				self.SaveJson()
-				return "<@" + user['user_id'] + ">: User <@" + subject + "> added to superusers."
+				response += "<@" + user['user_id'] + ">: User <@" + subject + "> added to superusers.\n"
 			else:
 				return "<@" + user['user_id'] + ">: You are not authorised to add other superusers."
 		else:
@@ -329,9 +334,29 @@ class SlackResponder(object):
 					return "<@" + user['user_id'] + ">: Action not needed."
 				self.botJson['admins'].append(subject)
 				self.SaveJson()
-				return "<@" + user['user_id'] + ">: User <@" + subject + "> added to authorised users."
+				response += "<@" + user['user_id'] + ">: User <@" + subject + "> added to authorised users.\n"
 			else:
 				return "<@" + user['user_id'] + ">: You are not authorised to add other users."
+
+		# If we're still here (not returned already), lets check to see whats missing, if anything.
+		if user['user_id'] not in self.botJson['users']:
+			response += "<@" + subject + ">: I need you to add your name, email and twitter information to my database.\n"
+			response += "Use the commands .name,.email and .twitter to give me your details.\n"
+			response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
+			response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".twitter tweeter\".\n"
+			return response
+		else:
+			if 'name' not in self.botJson['users'][user['user_id']]:
+				response += "<@" + subject + ">: Please use \".name <name>\" to set your name in my database.\n"
+			if 'image' not in self.botJson['users'][user['user_id']]:
+				response += "<@" + subject + ">: Please use \".image <image>\" to set your image url in my database.\n"
+				response += "Note if you use .email again this value will be overwritten with a Gravatar url.\n"
+			if 'twitter' not in self.botJson['users'][user['user_id']]:
+				response += "<@" + subject + ">: Please use \".twitter <name>\" to set your twitter handle in my database.\n"
+			if 'email' not in self.botJson['users'][user['user_id']]:
+				response += "<@" + subject + ">: Please use \".email <email>\" to set your email address in my database.\n"
+			return response
+
 
 			
 	def DemoteUser(self, user, subject, hide):
@@ -396,11 +421,15 @@ class SlackResponder(object):
 		'''
 		self.SetupJson()
 		text = text.replace("'", "").replace("\\", "") # Bit of anti-xss
+		if user['user_id'] not in self.botJson['users']:
+			self.botJson['users'][user['user_id']] = {}
 		if userValue == "name":
 			self.botJson['users'][user['user_id']]['name'] = text
 			self.SaveJson()
 			return "<@" + user['user_id'] + ">: Your name has been updated.\nUse '.regen' to refresh the template."
 		elif userValue == "email":
+			if validate_email(text) == False:
+				return "<@" + user['user_id'] + ">: Invalid email address."	
 			gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(text.lower()).hexdigest() + "?"
 			gravatar_url += urllib.urlencode({'d':"http://storj.sdo-srv.com/storjlogo.jpg", 's':"72"})
 			self.botJson['users'][user['user_id']]['email'] = text
@@ -431,11 +460,22 @@ class SlackResponder(object):
 
 	def AdminList(self, user):
 		admins = []
+		superusers = []
 		self.SetupJson()
 		for k in self.botJson['admins']:
-			admins.append("<@" + k + ">")
-		final = ", ".join(admins)
-		return "Approved posters: " + final
+			try:
+				admins.append(self.botJson['users'][k]['name'])
+			except:
+				pass
+		for k in self.botJson['superusers']:
+			try:
+				superusers.append(self.botJson['users'][k]['name'])
+			except:
+				pass
+			
+		adminList = ", ".join(admins)
+		superList = ", ".join(superusers)
+		return "Approved posters: " + adminList + "\n Administrators: " + superList
 
 
 	def GetUser(self, user_id):
@@ -570,15 +610,3 @@ class SlackBackup(object):
 		fileOut.close()
 		
 		# All done!
-		
-		
-		
-		
-		
-		
-		
-		
-	
-
-
-
