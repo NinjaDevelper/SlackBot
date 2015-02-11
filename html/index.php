@@ -33,14 +33,26 @@ function humanTiming ($time) {
 <h2>What the Storj.io Developers are working on...</h2>
 	<div class="user-info">
 		<div class="user-image">
+			<img src="http://www.gravatar.com/avatar/a789aa6e7e867e7f4d3a9dcb9e52b29d?s=72&amp;d=http%3A%2F%2Fstorj.sdo-srv.com%2Fstorjlogo.jpg">
+		</div>
+		<div class="user-name">
+		<a href="subwolf"><span>Robin Beckett</span></a>
+		</div>
+		<div class="user-text">My SPOD has too much FLEEM.</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-02-08 11:35:13") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
 			<img src="https://secure.gravatar.com/avatar/4c0880cd2352fba1f40bde9ebb411e8c.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0007-72.png">
 		</div>
 		<div class="user-name">
 		<a href="https://twitter.com/frdwrd"><span>James Prestwich</span></a>
 		</div>
-		<div class="user-text">The world has stored over 140,000,000,000 GB so far this year. What did you do with your 20GB?</div>
+		<div class="user-text">Calculating the cost of running a Storj node.</div>
 		<div class="user-date">
-		<?php echo humanTiming("2015-01-13 19:23:36") . " ago"; ?>
+		<?php echo humanTiming("2015-02-01 23:54:53") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">
@@ -50,21 +62,9 @@ function humanTiming ($time) {
 		<div class="user-name">
 		<a href="robamichael"><span>Rob Michael</span></a>
 		</div>
-		<div class="user-text">yay!</div>
+		<div class="user-text">back to reviewing marketing plan 2015 on Monday</div>
 		<div class="user-date">
-		<?php echo humanTiming("2015-01-13 16:53:41") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
-			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
-		</div>
-		<div class="user-name">
-		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
-		</div>
-		<div class="user-text">don't let me down</div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-01-13 15:51:56") . " ago"; ?>
+		<?php echo humanTiming("2015-02-01 23:12:18") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">
@@ -74,9 +74,33 @@ function humanTiming ($time) {
 		<div class="user-name">
 		<a href="https://twitter.com/ryanaraymond"><span>Ryan Raymond</span></a>
 		</div>
-		<div class="user-text">Tweeting Everything</div>
+		<div class="user-text">scaling up farmer trying for 100 GB</div>
 		<div class="user-date">
-		<?php echo humanTiming("2015-01-02 01:09:29") . " ago"; ?>
+		<?php echo humanTiming("2015-01-27 20:16:13") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
+		</div>
+		<div class="user-text">updating Press page on &lt;http://Storj.io|Storj.io&gt;</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-01-27 20:12:14") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-10-27/2879087845_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="https://twitter.com/super3"><span>Shawn Wilkinson</span></a>
+		</div>
+		<div class="user-text">this working?</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-01-23 22:50:35") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">
@@ -89,18 +113,6 @@ function humanTiming ($time) {
 		<div class="user-text">upstream and storjtorrent now have 100% test coverage.</div>
 		<div class="user-date">
 		<?php echo humanTiming("2015-01-01 23:58:26") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
-			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-10-27/2879087845_72.jpg">
-		</div>
-		<div class="user-name">
-		<a href="https://twitter.com/super3"><span>Shawn Wilkinson</span></a>
-		</div>
-		<div class="user-text">catching up on slack</div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-01-01 23:30:12") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">

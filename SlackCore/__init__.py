@@ -251,6 +251,8 @@ class SlackResponder(object):
 				elif trigger == ".twitter":
 					self.SetupJson()
 					self.botJson['users'][postData['user_id']]['twitter'] = argument
+					self.botJson['twitter'][postData['user_id']] = argument
+
 					self.SaveJson()
 					return "<@" + postData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
 				else:
