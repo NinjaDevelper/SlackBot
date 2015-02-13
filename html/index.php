@@ -33,14 +33,38 @@ function humanTiming ($time) {
 <h2>What the Storj.io Developers are working on...</h2>
 	<div class="user-info">
 		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
+		</div>
+		<div class="user-text">testing magic URL &lt;http://storj.io&gt;</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-02-13 09:35:01") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
 			<img src="http://www.gravatar.com/avatar/a789aa6e7e867e7f4d3a9dcb9e52b29d?s=72&amp;d=http%3A%2F%2Fstorj.sdo-srv.com%2Fstorjlogo.jpg">
 		</div>
 		<div class="user-name">
 		<a href="subwolf"><span>Robin Beckett</span></a>
 		</div>
-		<div class="user-text">My SPOD has too much FLEEM.</div>
+		<div class="user-text">So does this one: &amp;lt;http://www.foo.com|www.foo.com&amp;gt;</div>
 		<div class="user-date">
-		<?php echo humanTiming("2015-02-08 11:35:13") . " ago"; ?>
+		<?php echo humanTiming("2015-02-13 08:50:21") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-11-30/3115599304_64f28699600e088eefa7_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="none"><span>Tome Boshevski</span></a>
+		</div>
+		<div class="user-text">test</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-02-11 18:56:39") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">
@@ -77,18 +101,6 @@ function humanTiming ($time) {
 		<div class="user-text">scaling up farmer trying for 100 GB</div>
 		<div class="user-date">
 		<?php echo humanTiming("2015-01-27 20:16:13") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
-			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
-		</div>
-		<div class="user-name">
-		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
-		</div>
-		<div class="user-text">updating Press page on &lt;http://Storj.io|Storj.io&gt;</div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-01-27 20:12:14") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">

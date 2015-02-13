@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # RTB 2014-01-03 Rewrite for Webhooks
@@ -100,6 +100,11 @@ class SlackResponder(object):
 		"owner": 3
 	}
 	
+	'''
+	# Url regex
+	urlFixerSingle = "<((https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)>"
+	urlFixerDouble = "<((https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)|([^>]+)>"
+	'''
 	
 	def __init__(self, connect=True):
 		# Lets get set up
@@ -113,11 +118,15 @@ class SlackResponder(object):
 		else:
 			self.ws     = websocket.WebSocket()
 			
-		# Compile regex triggers
+		# Compile regex triggers and url regex
 		self.triggers = {}
 		for key, val in self.hooks.iteritems():
 			self.triggers[key] = re.compile(val)
-
+		'''
+		BUGBUG This will not work during template generation
+		self.urlCheckerSingle = re.compile(self.urlFixerSingle)
+		self.urlCheckerDouble = re.compile(self.urlFixerDouble)
+		'''
 
 	def SetupJson(self):
 		logger = logging.getLogger("SlackBot")
@@ -517,6 +526,8 @@ class SlackResponder(object):
 
 
 	def OutputTemplate(self):
+		logger = logging.getLogger("SlackBot")
+		self.ConvertDetails() # Make sure everything is copied over at the time
 		self.SetupJson()
 		# Two stages, the first is to order the user id by timestamp, then pull in order
 		findLatest = {}
@@ -549,12 +560,36 @@ class SlackResponder(object):
 			if user_id in self.botJson['hidden']:
 				continue
 			if user_id not in self.botJson['twitter']:
-				dick = self.botJson['users'][user_id]['profile']['real_name']
-				print "Cannot process entry for " + dick + ", does not have twitter account set up."
-				continue
+				self.botJson['users'][user_id]['twitter'] = "storjproject"
 			
+			text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
+
+			'''
+			# Does it need a url parsed?
+			# Single
+			test = self.urlCheckerSingle.match(text)
+			if test:
+				textUrl = test.group(1)
+				logger.debug("Text To Submit: " + text)
+				logger.debug("Url Portion: " + textUrl)
+				text = self.urlChecker.sub("<a href=\"" + textUrl + "\">" + textUrl + "</a>", text)
+			else:
+				# Double
+				test = self.urlCheckerDouble.match(text)
+				if test:
+					textUrl = test.group(1)
+					textDesc = test.group(2)
+					logger.debug("Text To Submit: " + text)
+					logger.debug(test.group(0))					
+					logger.debug(test.group(1))
+					logger.debug(test.group(2))
+					logger.debug("Url Portion: " + textUrl)
+					logger.debug("Description Portion: " + textDesc)	
+					text = self.urlChecker.sub("<a href=\"" + textUrl + "\">" + textDesc + "</a>", strtext)
+			'''
+					
 			tdata.append({
-				"text": str(self.botJson['updates'][key]['text'].encode("utf-8")),
+				"text": text,
 				"name": self.botJson['users'][user_id]['name'],
 				"image": self.botJson['users'][user_id]['image'],
 				"twitter": self.botJson['users'][user_id]['twitter'],
@@ -574,13 +609,16 @@ class SlackResponder(object):
 		output = {}
 		
 		for key, val in self.botJson['updates'].iteritems():
-			output[key] = {
-				"name": self.botJson['users'][key]['profile']['real_name'],
-				"image": self.botJson['users'][key]['profile']['image_72'],
-				"email": self.botJson['users'][key]['profile']['email'],
-				"twitter": "https://twitter.com/" + self.botJson['twitter'][key]
-			}
-			self.botJson['users'][key] = output[key]
+			try:
+				output[key] = {
+					"name": self.botJson['users'][key]['profile']['real_name'],
+					"image": self.botJson['users'][key]['profile']['image_72'],
+					"email": self.botJson['users'][key]['profile']['email'],
+					"twitter": "https://twitter.com/" + self.botJson['twitter'][key]
+				}
+				self.botJson['users'][key] = output[key]
+			except:
+				pass
 			
 		self.SaveJson()
 			
