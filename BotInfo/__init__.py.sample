@@ -9,8 +9,8 @@ class botData:
 	user_id        = ""
 	owner_id       = "U03A8VAL0"
 	status_file    = './slackwatch.json'
-	template_file  = 'html/index.template'
-	output_file    = 'html/index.php'
+	template_file  = 'index.template'
+	output_file    = 'index.php'
 	sleep_time     = 5.0
 	ssl_cert_file  = ''
 	ssl_key_file   = ''
