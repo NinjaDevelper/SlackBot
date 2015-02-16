@@ -86,6 +86,7 @@ class SlackResponder(object):
 		"markets" :	"^\.markets",
 		"melotic" :	"^\.melotic",
 		"poloniex" :	"^\.poloniex",
+		"bittrex":	"^\.bittrex",
 		"alts" : 	"^\.alts",
 		"undo" : 	"^\.undo",
 		"regen" :  	"^\.regen",
@@ -271,7 +272,8 @@ class SlackResponder(object):
 		elif request == ".markets":
 			response  = "Melotic SJCX/BTC: " + str(self.GetExRate("melotic")) + "\n"
 			response += "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")) + "\n"
-			response += "Alts.trade SJCX/BTC: " + str(self.GetExRate("alts"))
+			response += "Alts.trade SJCX/BTC: " + str(self.GetExRate("alts")) + "\n"
+			response += "Bittrex SJCX/BTC: " + str(self.GetExRate("bittrex"))
 			return response
 		elif request == ".melotic":
 			return "Melotic SJCX/BTC: " + str(self.GetExRate("melotic"))
@@ -279,6 +281,8 @@ class SlackResponder(object):
 			return "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex"))
 		elif request == ".alts":
 			return "Alts.trade SJCX/BTC: " + str(self.GetExRate("alts"))
+		elif request == ".bittrex":
+			return "Bittrex SJCX/BTC: " + str(self.GetExRate("bittrex"))
 		elif request == ".undo":
 			return self.UndoPost(postData)
 		elif request == ".regen":
@@ -514,15 +518,23 @@ class SlackResponder(object):
 		@param exchange: What exchange to fetch data for.
 		@return: balance string
 		'''
+		logger = logging.getLogger("SlackBot")
 		if exchange == "melotic":
 			rate = requests.get("https://www.melotic.com/api/markets/sjcx-btc/ticker", verify=False).json()
-			return rate['latest_price']
+			if "e" in str(rate['latest_price']):
+				return "%.*f" % (8, rate['latest_price'])
+			else:
+				return rate['latest_price']
 		elif exchange == "poloniex":
 			rate = requests.get("https://poloniex.com/public?command=returnTicker", verify=False).json()
 			return rate['BTC_SJCX']['last']
 		elif exchange == "alts":
 			rate = requests.get("https://alts.trade/rest_api/ticker/SJCX/BTC", verify=False).json()
 			return rate['result']['last']
+		elif exchange == "bittrex":
+			rate = requests.get("https://bittrex.com/api/v1.1/public/getmarketsummary?market=btc-sjcx", verify=False).json()
+			logger.debug(json.dumps(rate, indent=4))
+			return "%.*f" % (8, rate['result'][0]['Last'])
 
 
 	def OutputTemplate(self):
