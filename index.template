@@ -27,10 +27,10 @@ function humanTiming ($time) {
 <head>
 	<meta charset="utf-8">
 	<link href="css/style.css" rel="stylesheet">
-	<title>What users have been up to...</title>
+	<title>Storj - Team Status</title>
 </head>
 <body>
-<h2>What the Storj.io Developers are working on...</h2>
+<h2>Storj.io Team Status</h2>
 	<div class="user-info" tal:repeat="user users">
 		<div class="user-image">
 			<img tal:attributes="src user.image">
