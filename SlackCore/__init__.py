@@ -609,7 +609,7 @@ class SlackResponder(object):
 				"ts": datetime.datetime.fromtimestamp(float(ts)).strftime('%Y-%m-%d %H:%M:%S')
 			})
 
-			pt_loader = TemplateLoader(['html/'], auto_reload=True)
+			pt_loader = TemplateLoader(['.'], auto_reload=True)
 			template  = pt_loader.load('index.template')
 			with open(botData.output_file, 'w') as template_out:
 				template_out.write(template(users=tdata))
