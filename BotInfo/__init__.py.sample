@@ -20,4 +20,5 @@ class botData:
 	backup_path    = ""
 	twitter_key    = ""
 	twitter_secret = ""
+	use_ssl        = False
 

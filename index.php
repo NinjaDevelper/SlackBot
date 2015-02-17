@@ -33,6 +33,18 @@ function humanTiming ($time) {
 <h2>Storj.io Team Status</h2>
 	<div class="user-info">
 		<div class="user-image">
+			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-11-30/3115599304_64f28699600e088eefa7_72.jpg">
+		</div>
+		<div class="user-name">
+		<a href="none"><span>Tome Boshevski</span></a>
+		</div>
+		<div class="user-text">having romantic dinner</div>
+		<div class="user-date">
+		<?php echo humanTiming("2015-02-14 15:13:21") . " ago"; ?>
+		</div>
+	</div>
+ <div class="user-info">
+		<div class="user-image">
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
 		</div>
 		<div class="user-name">
@@ -53,18 +65,6 @@ function humanTiming ($time) {
 		<div class="user-text">So does this one: &amp;lt;http://www.foo.com|www.foo.com&amp;gt;</div>
 		<div class="user-date">
 		<?php echo humanTiming("2015-02-13 08:50:21") . " ago"; ?>
-		</div>
-	</div>
- <div class="user-info">
-		<div class="user-image">
-			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-11-30/3115599304_64f28699600e088eefa7_72.jpg">
-		</div>
-		<div class="user-name">
-		<a href="none"><span>Tome Boshevski</span></a>
-		</div>
-		<div class="user-text">test</div>
-		<div class="user-date">
-		<?php echo humanTiming("2015-02-11 18:56:39") . " ago"; ?>
 		</div>
 	</div>
  <div class="user-info">
