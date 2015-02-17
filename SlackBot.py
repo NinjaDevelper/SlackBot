@@ -28,8 +28,8 @@ logger.addHandler(ch)
 logger.info("Initializing...")
 
 server        = BaseHTTPServer.HTTPServer((botData.listen_ip, botData.listen_port), PostHandler)
-server.socket = ssl.wrap_socket (sock=server.socket, certfile=botData.ssl_cert_file, 
-                keyfile=botData.ssl_key_file, server_side=True, ca_certs="data/ca.crt")
+# server.socket = ssl.wrap_socket (sock=server.socket, certfile=botData.ssl_cert_file, 
+#                 keyfile=botData.ssl_key_file, server_side=True, ca_certs="data/ca.crt")
                 
 print 'Starting server, use <Ctrl-C> to stop'
 
