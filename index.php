@@ -27,10 +27,10 @@ function humanTiming ($time) {
 <head>
 	<meta charset="utf-8">
 	<link href="css/style.css" rel="stylesheet">
-	<title>What users have been up to...</title>
+	<title>Storj - Team Status</title>
 </head>
 <body>
-<h2>What the Storj.io Developers are working on...</h2>
+<h2>Storj.io Team Status</h2>
 	<div class="user-info">
 		<div class="user-image">
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-11-30/3115599304_64f28699600e088eefa7_72.jpg">
