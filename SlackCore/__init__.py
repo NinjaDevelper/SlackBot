@@ -17,6 +17,7 @@ from BotInfo import botData
 from operator import itemgetter
 from datetime import date
 from validate_email import validate_email
+import textwrap
 
 class PostHandler(BaseHTTPRequestHandler):
 	def setup(self):
@@ -77,7 +78,7 @@ class SlackResponder(object):
 		"hide":		"^(\.hide) \<\@([\w]+)\>",
 		"show":		"^(\.show) \<\@([\w]+)\>",
 		"twitter": 	"^(\.twitter) ([\w]+)$",
-		"email":        "^(\.email) \<mailto\:([\w+\.-@]+)|[\w+\.-@]+\>$",
+		"email":    "^(\.email) \<mailto\:([\w+\.-@]+)|[\w+\.-@]+\>$",
 		"image":	"^(\.image) ([\w]+)$",
 		"name":		"^(\.name) (.*)$",
 		"status" : 	"^(\.status) (.*)$",
@@ -89,7 +90,9 @@ class SlackResponder(object):
 		"alts" : 	"^\.alts",
 		"undo" : 	"^\.undo",
 		"regen" :  	"^\.regen",
-		"ping":		"^\.ping"
+		"ping":		"^\.ping",
+		"whoami":	"^\.whoami",
+		"help":		"^\.help"
 	}
 	
 	# User ability level
@@ -286,9 +289,35 @@ class SlackResponder(object):
 			return "<@" + postData['user_id'] + ">: I have refreshed the template."
 		elif request == ".ping":
 			return "PONG!"
+		elif request == ".whoami":
+			return "Hello <@" + postData['user_id'] + ">, your user id is " + postData['user_id'] + "."
+		elif request == ".help":
+			return self.HelpResponse()
 		else:
 			return "No response to give!"
 
+	def HelpResponse(self):
+		return textwrap.dedent(
+			"""
+			Hello, I'm SlackBot. Standard commands you can use with me are:\n
+			.add (username) <superuser> - Authorise a user to post status updates. Include 'superuser' to
+			give them the power to add or remove other users from the authorised list.\n
+			.del (username) - Revokes status updates from a user.\n
+			.show (username) - Show posts from a user on the status page.\n
+			.hide (username) - Hide posts from a user on the status page.\n
+			.name (name) - Updates name shown for a user added to the bot from the one pulled from Slack.\n
+			.image (url) - Updates the image shown for a user added to the bot from the one pulled from Slack.\n
+			.email (address) - Updates name shown for a user added to the bot from the one pulled from Slack (not that this is shown normally).\n
+			.twitter (name) - Updates the twitter address for a user from the default.\n
+			.status (text) - Post a status update! Use whatever text you want, it will be used in the output.\n
+			.undo - Didn't mean to post that last status update? This will return it to what you said last.\n
+			.regen - Force regeneration of the status page from the template.\n
+			.whoami - Tells you your user_id, should you wish to change any 'settings' :)\n
+			.list - Lists bot users authorised to post status updates.\n
+			\n
+			Enjoy!
+			"""
+		)
 
 	def PostStatusUpdate(self, user, text):
 		''' Creates a status update for a user, refreshes template.
@@ -349,27 +378,25 @@ class SlackResponder(object):
 			else:
 				return "<@" + user['user_id'] + ">: You are not authorised to add other users."
 
-		# If we're still here (not returned already), lets check to see whats missing, if anything.
-		if user['user_id'] not in self.botJson['users']:
-			response += "<@" + subject + ">: I need you to add your name, email and twitter information to my database.\n"
-			response += "Use the commands .name,.email and .twitter to give me your details.\n"
-			response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
-			response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".twitter tweeter\".\n"
-			return response
-		else:
-			if 'name' not in self.botJson['users'][user['user_id']]:
-				response += "<@" + subject + ">: Please use \".name <name>\" to set your name in my database.\n"
-			if 'image' not in self.botJson['users'][user['user_id']]:
-				response += "<@" + subject + ">: Please use \".image <image>\" to set your image url in my database.\n"
-				response += "Note if you use .email again this value will be overwritten with a Gravatar url.\n"
-			if 'twitter' not in self.botJson['users'][user['user_id']]:
-				response += "<@" + subject + ">: Please use \".twitter <name>\" to set your twitter handle in my database.\n"
-			if 'email' not in self.botJson['users'][user['user_id']]:
-				response += "<@" + subject + ">: Please use \".email <email>\" to set your email address in my database.\n"
-			return response
+		newUser = {}
+		req = self.client._make_request('users.info', {'user': subject})
+		logger.debug(json.dumps(req, indent=4))
+		newUser['name']    = req['user']['profile']['real_name']
+		newUser['image']   = req['user']['profile']['image_72']
+		newUser['email']   = req['user']['profile']['email']
+		newUser['twitter'] = "storjproject"
+		newUser['profile'] = req
+		self.SetupJson()
+		self.botJson['users'][user['user_id']] = newUser
+		self.SaveJson()
+		
+		response += "<@" + subject + ">: I have set up your profile with what I can gather immediately from Slack.\n"
+		response += "If you want, you can use the commands .name,.email and .twitter to update your details.\n"
+		response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
+		response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".twitter tweeter\".\n"
+		return response
 
 
-			
 	def DemoteUser(self, user, subject, hide):
 		''' Demotes a user so they won't be allowed to post updates. Optional hide posts.
 		Doesn't matter what level they are, they're gone.
@@ -381,15 +408,18 @@ class SlackResponder(object):
 		self.SetupJson()
 		if subject in self.botJson['admins']:
 			self.botJson['admins'].remove(subject)
+			self.botJson['updates'].remove(subject)
 			self.SaveJson()
+			self.OutputTemplate()
 			return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
 		elif subject in self.botJson['superusers']:
 			self.botJson['superusers'].remove(subject)
+			self.botJson['updates'].remove(subject)
 			self.SaveJson()
+			self.OutputTemplate()
 			return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
 		else:
 			return "<@" + user['user_id'] + ">: Action not needed."
-
 
 	def HideUserPosts(self, user, subject):
 		''' Hide posts by a user, refreshes template without that users posts.
@@ -597,7 +627,7 @@ class SlackResponder(object):
 				"ts": datetime.datetime.fromtimestamp(float(ts)).strftime('%Y-%m-%d %H:%M:%S')
 			})
 
-			pt_loader = TemplateLoader(['.'], auto_reload=True)
+			pt_loader = TemplateLoader(['html/'], auto_reload=True)
 			template  = pt_loader.load('index.template')
 			with open(botData.output_file, 'w') as template_out:
 				template_out.write(template(users=tdata))
