@@ -292,15 +292,17 @@ class SlackResponder(object):
             .del (username) - Revokes status updates from a user.\n
             .show (username) - Show posts from a user on the status page.\n
             .hide (username) - Hide posts from a user on the status page.\n
-            .name (name) - Updates name shown for a user added to the bot from the one pulled from Slack.\n
-            .image (url) - Updates the image shown for a user added to the bot from the one pulled from Slack.\n
-            .email (address) - Updates name shown for a user added to the bot from the one pulled from Slack (not that this is shown normally).\n
+            .name (name) - Updates name shown for a user added to the bot.\n
+            .image (url) - Updates the image shown for a user added to the bot.\n
+            .email (address) - Updates name shown for a user added to the bot (not that this is shown normally).\n
             .twitter (name) - Updates the twitter address for a user from the default.\n
             .status (text) - Post a status update! Use whatever text you want, it will be used in the output.\n
             .undo - Didn't mean to post that last status update? This will return it to what you said last.\n
             .regen - Force regeneration of the status page from the template.\n
             .whoami - Tells you your user_id, should you wish to change any 'settings' :)\n
             .list - Lists bot users authorised to post status updates.\n
+            .rate (coin) (currency) - Fetches exchange rates for coins at CoinMarketCap, uses the top 100
+            coins they track, with USD, CAD, CNY, RUB and BTC as supported currencies.
             \n
             Enjoy!
             """
