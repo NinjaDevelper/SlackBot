@@ -595,7 +595,7 @@ class SlackResponder(object):
                 continue
             
             text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
-
+            ts   = self.botJson['updates'][key]['ts']
             ''' Reasons not to continue. We will mark a problem and skip. '''
             if not self.botJson['users'][user_id]['name']:
                 problems = True
