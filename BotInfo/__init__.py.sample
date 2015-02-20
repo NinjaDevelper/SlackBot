@@ -4,21 +4,37 @@
 # Bot Information
 
 class botData:
+	''' Outgoing web hook token, *required* if the bot is to respond to you.
+	See docs for how to set this. '''
 	hook_token     = ""
+	''' Token id for the real-time-messaging API, *optional* because the
+	bot will run without it. However, it will not be able to fetch user
+	information from Slack, added users will be prompted to add it
+	manually.'''
 	token_id       = ""
+	''' BUGBUG Don't think this is needed, leave blank.'''
 	user_id        = ""
-	owner_id       = "U03A8VAL0"
+	''' The owner of the bot - once up the bot must do '.whoami' to find out 
+	their user id, then put that here. '''
+	owner_id       = ""
+	''' Where the JSON file that contains user data is located. This is for
+	exclusive access, if the path is shared with any other instance corruption
+	may occur.'''
 	status_file    = './slackwatch.json'
+	''' Template file to read from, edit with care!'''
 	template_file  = 'index.template'
+	''' Output file to write the user status data to.'''
 	output_file    = 'index.php'
-	sleep_time     = 5.0
+	''' SSL Settings, you should know what to set these to.'''
 	ssl_cert_file  = ''
 	ssl_key_file   = ''
+	use_ssl        = False
+	''' IP Address and port to listen on for requests.'''
 	listen_ip      = ""
 	listen_port    = 0
+	''' Log file to write to, handy if you want to track what is going on.'''
 	log_file       = "slackbot.log"
+	''' Making backups? Set this and they will be kept in this directory to
+	restore in the event of data loss.'''
 	backup_path    = ""
-	twitter_key    = ""
-	twitter_secret = ""
-	use_ssl        = False
 

@@ -29,8 +29,11 @@ logger.info("Initializing...")
 
 server        = BaseHTTPServer.HTTPServer((botData.listen_ip, botData.listen_port), PostHandler)
 if botData.use_ssl is True:
-	server.socket = ssl.wrap_socket(sock=server.socket, certfile=botData.ssl_cert_file, 
-        	        keyfile=botData.ssl_key_file, server_side=True, ca_certs="data/ca.crt")
+    server.socket = ssl.wrap_socket(sock=server.socket,
+                                    certfile=botData.ssl_cert_file,
+                                    keyfile=botData.ssl_key_file,
+                                    server_side=True,
+                                    ca_certs="data/ca.crt")
                 
 print 'Starting server, use <Ctrl-C> to stop'
 
@@ -39,5 +42,3 @@ try:
 except KeyboardInterrupt:
         server.server_close()
 print "Server Stopped - %s:%s" % (botData.listen_ip, botData.listen_port)
-
-

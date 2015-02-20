@@ -92,7 +92,8 @@ class SlackResponder(object):
 		"regen" :  	"^\.regen",
 		"ping":		"^\.ping",
 		"whoami":	"^\.whoami",
-		"help":		"^\.help"
+		"help":		"^\.help",
+		"lazy":		"^\.lazy"
 	}
 	
 	# User ability level
@@ -143,16 +144,15 @@ class SlackResponder(object):
 			# Starting over
 			self.botJson = {
 				"users": {},
-				"updates": [],
-				"twitter": {},
+				"updates": {},
 				"undo": {},
-			        "email": {},
-			        "admins": [botData.owner_id],
-			        "superusers": [botData.owner_id],
+			        "admins": [],
+			        "superusers": [],
 			        "hidden": []
 			}
+			
 		return
-		
+
 
 	def SaveJson(self):
 		with open(botData.status_file, 'w') as status_out:
@@ -263,8 +263,6 @@ class SlackResponder(object):
 				elif trigger == ".twitter":
 					self.SetupJson()
 					self.botJson['users'][postData['user_id']]['twitter'] = argument
-					self.botJson['twitter'][postData['user_id']] = argument
-
 					self.SaveJson()
 					return "<@" + postData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
 				else:
@@ -285,16 +283,19 @@ class SlackResponder(object):
 		elif request == ".undo":
 			return self.UndoPost(postData)
 		elif request == ".regen":
-			self.OutputTemplate()
-			return "<@" + postData['user_id'] + ">: I have refreshed the template."
+			self.OutputTemplate(postData['user_id'])
+			return 
 		elif request == ".ping":
 			return "PONG!"
 		elif request == ".whoami":
 			return "Hello <@" + postData['user_id'] + ">, your user id is " + postData['user_id'] + "."
 		elif request == ".help":
 			return self.HelpResponse()
+		elif request == ".lazy":
+			return self.FindLazyUsers()
 		else:
 			return "No response to give!"
+
 
 	def HelpResponse(self):
 		return textwrap.dedent(
@@ -330,11 +331,6 @@ class SlackResponder(object):
 		user['ts']   = user['timestamp']
 		del user['timestamp']
 		self.botJson['updates'][user['user_id']] = user
-		try:
-			test = self.botJson['users'][user['user_id']]
-		except:
-			self.GetUser(user['user_id'])
-			time.sleep(botData.sleep_time)
 		if user['user_id'] in self.botJson['undo']:
 			old = self.botJson['updates'][user['user_id']]
 			self.botJson['undo'][user['user_id']] = old # Copy before replace
@@ -379,22 +375,33 @@ class SlackResponder(object):
 				return "<@" + user['user_id'] + ">: You are not authorised to add other users."
 
 		newUser = {}
-		req = self.client._make_request('users.info', {'user': subject})
-		logger.debug(json.dumps(req, indent=4))
-		newUser['name']    = req['user']['profile']['real_name']
-		newUser['image']   = req['user']['profile']['image_72']
-		newUser['email']   = req['user']['profile']['email']
-		newUser['twitter'] = "storjproject"
-		newUser['profile'] = req
-		self.SetupJson()
-		self.botJson['users'][user['user_id']] = newUser
-		self.SaveJson()
+		''' Is the rtm api token set up? If not, complain at them.'''
+		if not botData.token_id:
+			self.botJson['users'][user['user_id']] = {}
+			self.SaveJson()
+			
+			response += "<@" + subject + ">: I cannot access Slack to get your user info so you will need to enter it manually.\n"
+			response += "I need your name, email and twitter details at minimum - I'll generate a gravatar address from your "
+			response + "email unless you specify it as below.\n"
+			response += "You can use the commands .name,.email and .twitter to update your details.\n"
+			response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
+			response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".image <url\", \".twitter tweeter\".\n"
+			return response
+		else:
+			req = self.client._make_request('users.info', {'user': subject})
+			logger.debug(json.dumps(req, indent=4))
+			newUser['name']    = req['user']['profile']['real_name']
+			newUser['image']   = req['user']['profile']['image_72']
+			newUser['email']   = req['user']['profile']['email']
+			newUser['twitter'] = "storjproject"
+			self.botJson['users'][user['user_id']] = newUser
+			self.SaveJson()
 		
-		response += "<@" + subject + ">: I have set up your profile with what I can gather immediately from Slack.\n"
-		response += "If you want, you can use the commands .name,.email and .twitter to update your details.\n"
-		response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
-		response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".twitter tweeter\".\n"
-		return response
+			response += "<@" + subject + ">: I have set up your profile with what I can gather immediately from Slack.\n"
+			response += "If you want, you can use the commands .name,.email and .twitter to update your details.\n"
+			response += "You can also use .image to force your image to a direct url if Gravatar does not work with your email.\n"
+			response += "Example: \".name Slack User\", \".email my.email.address@here.com\", \".twitter tweeter\".\n"
+			return response
 
 
 	def DemoteUser(self, user, subject, hide):
@@ -420,6 +427,7 @@ class SlackResponder(object):
 			return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
 		else:
 			return "<@" + user['user_id'] + ">: Action not needed."
+
 
 	def HideUserPosts(self, user, subject):
 		''' Hide posts by a user, refreshes template without that users posts.
@@ -518,16 +526,47 @@ class SlackResponder(object):
 		superList = ", ".join(superusers)
 		return "Approved posters: " + adminList + "\n Administrators: " + superList
 
-
-	def GetUser(self, user_id):
-		''' Fetch user information
-		@param user_id: user id to fetch info for
-		@return: bool True
-		'''
-		req = self.client._make_request('users.info', {'user': user_id})
-		self.botJson['users'][req['user']['id']] = req['user']
-		return True
+	def FindLazyUsers(self):
+		self.SetupJson()
+		text = ""
+		got_any = False
 		
+		lazyUsers = {
+			'name': {},
+			'image': {},
+			'email': {},
+			'twitter': {}
+		}
+		
+		for key, val in self.botJson['users'].iteritems():
+			if not self.botJson['users'][key]['name']:
+				lazyUsers['name'].append(self.botJson['users'][key])
+			if not self.botJson['users'][key]['image']:
+				lazyUsers['image'].append(self.botJson['users'][key])
+			if not self.botJson['users'][key]['email']:
+				lazyUsers['email'].append(self.botJson['users'][key])
+			if not self.botJson['users'][key]['twitter']:
+				lazyUsers['twitter'].append(self.botJson['users'][key])
+		
+		for no_info in ['name', 'image', 'email', 'twitter']:
+			if len(lazyUsers[no_info]) > 0:
+				lazy = []
+				text += "Users without " + no_info + " set: "
+				for user_id in lazyUsers[no_info]:
+					lazy.append("<@" + user_id + ">")
+				text += ", ".join(lazy)
+				text += "\n"
+				got_any = True
+
+		if got_any is True:
+			return "Aha!\n" + text
+		else:
+			return "All users in my system have complete profiles!"
+
+
+
+
+			
 		
 	def GetBalance(self, address):
 		''' Fetch user sjcx balance
@@ -555,37 +594,23 @@ class SlackResponder(object):
 			return rate['result']['last']
 
 
-	def OutputTemplate(self):
+	def OutputTemplate(self, user_id):
 		logger = logging.getLogger("SlackBot")
-		self.ConvertDetails() # Make sure everything is copied over at the time
 		self.SetupJson()
 		# Two stages, the first is to order the user id by timestamp, then pull in order
 		findLatest = {}
 		findPosts  = {}
+		problems   = False
 		
 		for key, val in self.botJson['updates'].iteritems():
-			try:
-				findPosts[key] = self.botJson['updates'][key]['ts']
-			except:
-				findPosts[key] = self.botJson['updates'][key]['timestamp']
+			findPosts[key] = self.botJson['updates'][key]['ts']
 			
 		findLatest = sorted(findPosts.items(), key=itemgetter(1), reverse=True)
 
 		tdata = []
 		for key, val in findLatest:
-			try:
-				# Old system
-				user_id = self.botJson['updates'][key]['user']
-			except:
-				# New system
-				user_id = self.botJson['updates'][key]['user_id']
-				
-			try:
-				ts      = self.botJson['updates'][user_id]['ts']
-			except:
-				ts      = self.botJson['updates'][user_id]['timestamp']
+			user_id = self.botJson['updates'][key]['user_id']
 
-						
 			# Is this a hidden post?	
 			if user_id in self.botJson['hidden']:
 				continue
@@ -593,6 +618,20 @@ class SlackResponder(object):
 				self.botJson['users'][user_id]['twitter'] = "storjproject"
 			
 			text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
+
+			''' Reasons not to continue. We will mark a problem and skip. '''
+			if not self.botJson['users'][user_id]['name']:
+				problems = True
+				continue
+			if not self.botJson['users'][user_id]['image']:
+				problems = True
+				continue
+			if not self.botJson['users'][user_id]['twitter']:
+				problems = True
+				continue
+			if not self.botJson['users'][user_id]['email']:
+				problems = True
+				continue
 
 			'''
 			# Does it need a url parsed?
@@ -627,33 +666,18 @@ class SlackResponder(object):
 				"ts": datetime.datetime.fromtimestamp(float(ts)).strftime('%Y-%m-%d %H:%M:%S')
 			})
 
-			pt_loader = TemplateLoader(['html/'], auto_reload=True)
-			template  = pt_loader.load('index.template')
-			with open(botData.output_file, 'w') as template_out:
-				template_out.write(template(users=tdata))
-				template_out.close()
-	
-	
-	def ConvertDetails(self):
-		self.SetupJson()
-		output = {}
-		
-		for key, val in self.botJson['updates'].iteritems():
-			try:
-				output[key] = {
-					"name": self.botJson['users'][key]['profile']['real_name'],
-					"image": self.botJson['users'][key]['profile']['image_72'],
-					"email": self.botJson['users'][key]['profile']['email'],
-					"twitter": "https://twitter.com/" + self.botJson['twitter'][key]
-				}
-				self.botJson['users'][key] = output[key]
-			except:
-				pass
+		pt_loader = TemplateLoader(['html/'], auto_reload=True)
+		template  = pt_loader.load('index.template')
+		with open(botData.output_file, 'w') as template_out:
+			template_out.write(template(users=tdata))
+			template_out.close()
 			
-		self.SaveJson()
-			
-		print json.dumps(output, indent=4)
-	
+		if problems is True:
+			response  = "<@" + user_id + ">: There was a problem outputting the template, but I did what I can.\n"
+			response += self.FindLazyUsers()
+			return response
+		else:
+			return "<@" + user_id + ">: I have refreshed the template."
 
 
 # Backup System
