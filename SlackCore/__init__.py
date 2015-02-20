@@ -327,7 +327,7 @@ class SlackResponder(object):
             self.botJson['undo'][user['user_id']] = user # Set them both to the same to start
             self.botJson['updates'][user['user_id']] = user
         self.SaveJson()
-        self.OutputTemplate()
+        self.OutputTemplate(user['user_id'])
         return "<@" + user['user_id'] + ">: Status update accepted, template updated."
 
 
@@ -405,13 +405,13 @@ class SlackResponder(object):
             self.botJson['admins'].remove(subject)
             self.botJson['updates'].remove(subject)
             self.SaveJson()
-            self.OutputTemplate()
+            self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         elif subject in self.botJson['superusers']:
             self.botJson['superusers'].remove(subject)
             self.botJson['updates'].remove(subject)
             self.SaveJson()
-            self.OutputTemplate()
+            self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         else:
             return "<@" + user['user_id'] + ">: Action not needed."
@@ -429,7 +429,7 @@ class SlackResponder(object):
                 return "<@" + user['user_id'] + ">: Action not needed."
             self.botJson['hidden'].append(subject)
             self.SaveJson()
-            self.OutputTemplate()
+            self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: Posts by <@" + subject + "> are now hidden.\nTemplate refreshed."
 
     
@@ -445,7 +445,7 @@ class SlackResponder(object):
                 return "<@" + user['user_id'] + ">: Action not needed."
             self.botJson['hidden'].remove(subject)
             self.SaveJson()
-            self.OutputTemplate()
+            self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: Updates by <@" + subject + "> are now seen.\nTemplate refreshed."
 
 
@@ -490,7 +490,7 @@ class SlackResponder(object):
         self.SetupJson()
         self.botJson['updates'][user['user_id']] = self.botJson['undo'][user['user_id']]
         self.SaveJson()
-        self.OutputTemplate()
+        self.OutputTemplate(user['user_id'])
         response = "<@" + user['user_id'] + ">: I have undone your last update and refreshed the template."
         return response
 

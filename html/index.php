@@ -36,7 +36,7 @@ function humanTiming ($time) {
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-18/2555802270_72.jpg">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/ryanaraymond"><span>Ryan Raymond</span></a>
+		<a href="ryanaraymond"><span>Ryan Raymond</span></a>
 		</div>
 		<div class="user-text">Reviewing IEEE template to reformat whitepapers</div>
 		<div class="user-date">
@@ -48,7 +48,7 @@ function humanTiming ($time) {
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-10-27/2879087845_72.jpg">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/super3"><span>Shawn Wilkinson</span></a>
+		<a href="super3"><span>Shawn Wilkinson</span></a>
 		</div>
 		<div class="user-text">On the road to VC meeting.</div>
 		<div class="user-date">
@@ -60,7 +60,7 @@ function humanTiming ($time) {
 			<img src="https://secure.gravatar.com/avatar/4c0880cd2352fba1f40bde9ebb411e8c.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0007-72.png">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/frdwrd"><span>James Prestwich</span></a>
+		<a href="frdwrd"><span>James Prestwich</span></a>
 		</div>
 		<div class="user-text">Working on a blog post: "Why SJCX?"</div>
 		<div class="user-date">
@@ -72,7 +72,7 @@ function humanTiming ($time) {
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-19/2555119977_72.jpg">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/colortwits"><span>Nicola Minichiello</span></a>
+		<a href="colortwits"><span>Nicola Minichiello</span></a>
 		</div>
 		<div class="user-text">going through the New Volunteer List, the next team member could be you!</div>
 		<div class="user-date">
@@ -84,7 +84,7 @@ function humanTiming ($time) {
 			<img src="https://secure.gravatar.com/avatar/47ea91e8096f914d22c7eb8d905fe9bf.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0004-72.png">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/jbrandoff"><span>Josh Brandoff</span></a>
+		<a href="jbrandoff"><span>Josh Brandoff</span></a>
 		</div>
 		<div class="user-text">writing architecture, road map and contribution documents.</div>
 		<div class="user-date">
@@ -132,7 +132,7 @@ function humanTiming ($time) {
 			<img src="https://secure.gravatar.com/avatar/363b8868efcc8afa9859628b55ebaaa2.jpg?s=72&amp;d=https%3A%2F%2Fslack.global.ssl.fastly.net%2F8390%2Fimg%2Favatars%2Fava_0020-72.png">
 		</div>
 		<div class="user-name">
-		<a href="https://twitter.com/switchpwn"><span>Mustafa Gezen</span></a>
+		<a href="switchpwn"><span>Mustafa Gezen</span></a>
 		</div>
 		<div class="user-text">Working on DriveShare GUI</div>
 		<div class="user-date">
