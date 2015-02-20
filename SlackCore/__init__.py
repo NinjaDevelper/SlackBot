@@ -81,14 +81,11 @@ class SlackResponder(object):
         "email":    "^(\.email) \<mailto\:([\w+\.-@]+)|[\w+\.-@]+\>$",
         "image":    "^(\.image) ([\w]+)$",
         "name":     "^(\.name) (.*)$",
-        "status" :  "^(\.status) (.*)$",
-        "balance" : "^(\.balance) ([A-Za-z0-9]{25,36})$",
+        "balance":  "^(\.balance) ([A-Za-z0-9]{25,36})$",
+        "rate":     "^(\.rate) ([\w]+) ?(usd|eur|cny|cad|rub|btc)?", #  $
+        "status":   "^(\.status) (.*)$",
+        "undo":     "^\.undo",
         "list":     "^\.list",
-        "markets" : "^\.markets",
-        "melotic" : "^\.melotic",
-        "poloniex" :    "^\.poloniex",
-        "alts" :    "^\.alts",
-        "undo" :    "^\.undo",
         "regen" :   "^\.regen",
         "ping":     "^\.ping",
         "whoami":   "^\.whoami",
@@ -128,7 +125,6 @@ class SlackResponder(object):
         for key, val in self.hooks.iteritems():
             self.triggers[key] = re.compile(val)
 
-
     def SetupJson(self):
         logger = logging.getLogger("SlackBot")
         if os.path.isfile(botData.status_file):
@@ -150,13 +146,11 @@ class SlackResponder(object):
             
         return
 
-
     def SaveJson(self):
         with open(botData.status_file, 'w') as status_out:
             json.dump(self.botJson, status_out)
             status_out.close()
         return
-
 
     def Parse(self, postData):
         ''' Parses a (should be) matching request of the bot
@@ -179,7 +173,6 @@ class SlackResponder(object):
                 return self._Process(postData, re.findall(self.triggers[key], postData['text']))
         # Still here? Very unlikely
         return "Huh?"
-
 
     def _Process(self, postData, matchText):
         logger = logging.getLogger("SlackBot")
@@ -224,7 +217,12 @@ class SlackResponder(object):
                             hideUser = False
                     except:
                         hideUser = False
-
+                elif trigger == ".rate":
+                    try:
+                        rateType = request[2]
+                    except:
+                        rateType = "usd"
+                
                 if postData['uLevel'] < 1:
                     return "<@" + postData['user_id'] + ">: You are not an authorised user."
                 # Status update?
@@ -232,8 +230,8 @@ class SlackResponder(object):
                     return self.PostStatusUpdate(postData, argument)
                 # Is the owner trying to be added or deleted?
                 elif trigger == ".add" or trigger == ".del":
-                    #if str(argument) == str(botData.owner_id and postData['user_id'] == botData.owner_id):
-                    #   return "<@" + postData['user_id'] + ">: Cannot perform actions on bot owner."
+                    if str(argument) == str(botData.owner_id):
+                        return "<@" + postData['user_id'] + ">: Cannot perform actions on bot owner."
                     if trigger == ".add":
                         logger.debug("JSON data: " + json.dumps(postData, indent=4))
                         logger.debug("User to act on: " + argument)
@@ -262,21 +260,12 @@ class SlackResponder(object):
                     self.botJson['users'][postData['user_id']]['twitter'] = argument
                     self.SaveJson()
                     return "<@" + postData['user_id'] + ">: Your twitter handle is now '" + argument + "'."
+                elif trigger == ".rate":
+                    return self.GetExRate(argument, rateType)
                 else:
                     return "No response to give!"
         elif request == ".list":
             return self.AdminList(postData)
-        elif request == ".markets":
-            response  = "Melotic SJCX/BTC: " + str(self.GetExRate("melotic")) + "\n"
-            response += "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex")) + "\n"
-            response += "Alts.trade SJCX/BTC: " + str(self.GetExRate("alts"))
-            return response
-        elif request == ".melotic":
-            return "Melotic SJCX/BTC: " + str(self.GetExRate("melotic"))
-        elif request == ".poloniex":
-            return "Poloniex SJCX/BTC: " + str(self.GetExRate("poloniex"))
-        elif request == ".alts":
-            return "Alts.trade SJCX/BTC: " + str(self.GetExRate("alts"))
         elif request == ".undo":
             return self.UndoPost(postData)
         elif request == ".regen":
@@ -503,7 +492,6 @@ class SlackResponder(object):
         response = "<@" + user['user_id'] + ">: I have undone your last update and refreshed the template."
         return response
 
-
     def AdminList(self, user):
         admins = []
         superusers = []
@@ -560,11 +548,6 @@ class SlackResponder(object):
         else:
             return "All users in my system have complete profiles!"
 
-
-
-
-            
-        
     def GetBalance(self, address):
         ''' Fetch user sjcx balance
         @param address: sjcx address
@@ -573,23 +556,20 @@ class SlackResponder(object):
         test = requests.get("http://api.blockscan.com/api2?module=address&action=balance&asset=SJCX&btc_address=" + address).json()
         if test['status'] == "success":
             return test['data'][0]['balance']
-            
 
-    def GetExRate(self, exchange):
-        '''Exchange rate fetcher.
-        @param exchange: What exchange to fetch data for.
-        @return: balance string
-        '''
-        if exchange == "melotic":
-            rate = requests.get("https://www.melotic.com/api/markets/sjcx-btc/ticker", verify=False).json()
-            return rate['latest_price']
-        elif exchange == "poloniex":
-            rate = requests.get("https://poloniex.com/public?command=returnTicker", verify=False).json()
-            return rate['BTC_SJCX']['last']
-        elif exchange == "alts":
-            rate = requests.get("https://alts.trade/rest_api/ticker/SJCX/BTC", verify=False).json()
-            return rate['result']['last']
-
+    def GetExRate(self, currency, output):
+        if not output:
+            output = "usd"
+        logger = logging.getLogger("SlackBot")
+        url = "http://coinmarketcap-nexuist.rhcloud.com/api/" + currency + "/price"
+        logger.debug("url: " + url)
+        logger.debug("Currency: " + output)
+        test = requests.get(url).json()
+        if 'error' in test:
+            return "Error: " + test['error']
+        if 'e' in test[output]:
+            test[output] = "%.10f" % float(test[output])
+        return currency.upper() + "/" + output.upper() + ": " + test[output.lower()]
 
     def OutputTemplate(self, user_id):
         logger = logging.getLogger("SlackBot")
