@@ -593,8 +593,6 @@ class SlackResponder(object):
             # Is this a hidden post?    
             if user_id in self.botJson['hidden']:
                 continue
-            if user_id not in self.botJson['twitter']:
-                self.botJson['users'][user_id]['twitter'] = "storjproject"
             
             text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
 
