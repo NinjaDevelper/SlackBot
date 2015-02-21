@@ -30,7 +30,7 @@ function humanTiming ($time) {
 	<title>Storj - Team Status</title>
 </head>
 <body>
-<h2>Storj.io Team Status</h2>
+<h2>Team Status</h2>
 	<div class="user-info">
 		<div class="user-image">
 			<img src="https://s3-us-west-2.amazonaws.com/slack-files2/avatars/2014-08-18/2555802270_72.jpg">

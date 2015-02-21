@@ -405,14 +405,20 @@ class SlackResponder(object):
         '''
         self.SetupJson()
         if subject in self.botJson['admins']:
-            self.botJson['admins'].remove(subject)
-            self.botJson['updates'].remove(subject)
+            try:
+                del self.botJson['admins'].subject
+                del self.botJson['updates'].subject
+            except:
+                pass
             self.SaveJson()
             self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         elif subject in self.botJson['superusers']:
-            self.botJson['superusers'].remove(subject)
-            self.botJson['updates'].remove(subject)
+            try:
+                del self.botJson['superusers'].subject
+                del self.botJson['updates'].subject
+            except:
+                pass
             self.SaveJson()
             self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
