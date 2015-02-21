@@ -30,7 +30,7 @@ function humanTiming ($time) {
 	<title>Storj - Team Status</title>
 </head>
 <body>
-<h2>Storj.io Team Status</h2>
+<h2>Team Status</h2>
 	<div class="user-info" tal:repeat="user users">
 		<div class="user-image">
 			<img tal:attributes="src user.image">
