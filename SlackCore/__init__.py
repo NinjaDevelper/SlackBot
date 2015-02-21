@@ -111,7 +111,7 @@ class SlackResponder(object):
     def __init__(self, connect=True):
         # Lets get set up
         botPass = {}
-        id botData.token_id:
+        if botData.token_id:
             self.client = SlackClient(botData.token_id)
         if connect is True:
             req         = self.client._make_request('rtm.start', {})
@@ -223,9 +223,12 @@ class SlackResponder(object):
                         rateType = request[2]
                     except:
                         rateType = "usd"
-                
-                if postData['uLevel'] < 1:
+
+                forbidden = ['.status','.add','.del','.show','.hide','.name',
+                             '.image','.email','.twitter','.undo','.regen']
+                if trigger in forbidden and postData['uLevel'] < 1:
                     return "<@" + postData['user_id'] + ">: You are not an authorised user."
+
                 # Status update?
                 if trigger == ".status":
                     return self.PostStatusUpdate(postData, argument)
