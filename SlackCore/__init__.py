@@ -270,8 +270,7 @@ class SlackResponder(object):
         elif request == ".undo":
             return self.UndoPost(postData)
         elif request == ".regen":
-            self.OutputTemplate(postData['user_id'])
-            return 
+            return self.OutputTemplate(postData['user_id'])
         elif request == ".ping":
             return "PONG!"
         elif request == ".whoami":
