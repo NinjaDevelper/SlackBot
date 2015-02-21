@@ -82,7 +82,7 @@ class SlackResponder(object):
         "image":    "^(\.image) ([\w]+)$",
         "name":     "^(\.name) (.*)$",
         "balance":  "^(\.balance) ([A-Za-z0-9]{25,36})$",
-        "rate":     "^(\.rate) ([\w]+) ?(usd|eur|cny|cad|rub|btc)?", #  $
+        "rate":     "^(\.rate) ([\w]+) ?(usd|USD|eur|EUR|cny|CNY|cad|CAD|rub|RUB|btc|BTC)?",
         "status":   "^(\.status) (.*)$",
         "undo":     "^\.undo",
         "list":     "^\.list",
@@ -111,7 +111,8 @@ class SlackResponder(object):
     def __init__(self, connect=True):
         # Lets get set up
         botPass = {}
-        self.client = SlackClient(botData.token_id)
+        id botData.token_id:
+            self.client = SlackClient(botData.token_id)
         if connect is True:
             req         = self.client._make_request('rtm.start', {})
             socket_url  = req['url']
@@ -563,7 +564,7 @@ class SlackResponder(object):
         if not output:
             output = "usd"
         logger = logging.getLogger("SlackBot")
-        url = "http://coinmarketcap-nexuist.rhcloud.com/api/" + currency + "/price"
+        url = "http://coinmarketcap-nexuist.rhcloud.com/api/" + currency.lower() + "/price"
         logger.debug("url: " + url)
         logger.debug("Currency: " + output)
         test = requests.get(url).json()
