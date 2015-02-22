@@ -144,12 +144,12 @@ class SlackResponder(object):
                     "superusers": [],
                     "hidden": []
             }
-            
-        if botData.owner_id not in self.botJson['superusers'] and
-           botData.owner_id not in self.botJson['users']:
-            self.botJson['users'][botData.owner_id] = {}
+
+        if botData.owner_id and botData.owner_id not in self.botJson['superusers']:
             self.botJson['superusers'].append(botData.owner_id)
-            
+        if botData.owner_id and botData.owner_id not in self.botJson['users']:
+            self.botJson['users'][botData.owner_id] = {}
+
         return
 
     def SaveJson(self):
