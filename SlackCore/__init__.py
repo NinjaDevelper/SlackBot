@@ -79,7 +79,7 @@ class SlackResponder(object):
         "show":     "^(\.show) \<\@([\w]+)\>",
         "twitter":  "^(\.twitter) ([\w]+)$",
         "email":    "^(\.email) \<mailto\:([\w+\.-@]+)|[\w+\.-@]+\>$",
-        "image":    "^(\.image) ([\w]+)$",
+        "image":    "^(\.image) \<(.*)\>$",
         "name":     "^(\.name) (.*)$",
         "balance":  "^(\.balance) ([A-Za-z0-9]{25,36})$",
         "rate":     "^(\.rate) ([\w]+) ?(usd|USD|eur|EUR|cny|CNY|cad|CAD|rub|RUB|btc|BTC)?",
@@ -172,6 +172,7 @@ class SlackResponder(object):
             return
             
         logger.debug("Looking through hooks for a match...")
+        logger.debug("Got: " + str(postData['text']))
         for key, val in self.triggers.iteritems():
             test = self.triggers[key].match(postData['text'])
             if test:
