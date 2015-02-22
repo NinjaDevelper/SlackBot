@@ -24,7 +24,7 @@ class botData:
     ''' Template file to read from, edit with care!'''
     template_file  = 'index.template'
     ''' Output file to write the user status data to.'''
-    output_file    = 'index.php'
+    output_file    = 'html/index.php'
     ''' SSL Settings, you should know what to set these to.'''
     ssl_cert_file  = ''
     ssl_key_file   = ''
