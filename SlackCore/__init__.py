@@ -561,7 +561,7 @@ class SlackResponder(object):
                 lazy = []
                 text += "Users without " + no_info + " set: "
                 for user_id in lazyUsers[no_info]:
-                    lazy.append("<@" + str(user_id) + ">")
+                    lazy.append("<@" + str(user_id.name) + ">")
                 text += ", ".join(lazy)
                 text += "\n"
                 got_any = True
