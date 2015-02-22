@@ -145,6 +145,10 @@ class SlackResponder(object):
                     "hidden": []
             }
             
+        if botData.owner_id not in self.botJson['superusers']:
+            self.botJson['users'][botData.owner_id] = {}
+            self.botJson['superusers'].append(botData.owner_id)
+            
         return
 
     def SaveJson(self):
@@ -403,22 +407,23 @@ class SlackResponder(object):
         @param hide: Bool to hide posts by the user at the same time
         @return: String to send back to the user
         '''
+        logger = logging.getLogger("SlackBot")
         self.SetupJson()
         if subject in self.botJson['admins']:
-            try:
-                del self.botJson['admins'].subject
-                del self.botJson['updates'].subject
-            except:
-                pass
+            logger.debug(self.botJson['admins'].index(subject))
+            userIndex = self.botJson['admins'].index(subject)
+            del self.botJson['admins'][userIndex]
+            if subject in self.botJson['updates']:
+                self.botJson['updates'].remove(subject)
             self.SaveJson()
             self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         elif subject in self.botJson['superusers']:
-            try:
-                del self.botJson['superusers'].subject
-                del self.botJson['updates'].subject
-            except:
-                pass
+            logger.debug(self.botJson['superusers'].index(subject))
+            userIndex = self.botJson['superusers'].index(subject)
+            del self.botJson['superusers'][userIndex]
+            if subject in self.botJson['updates']:
+                self.botJson['updates'].remove(subject)
             self.SaveJson()
             self.OutputTemplate(user['user_id'])
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
@@ -642,7 +647,7 @@ class SlackResponder(object):
                     logger.debug("Description Portion: " + textDesc)    
                     text = self.urlChecker.sub("<a href=\"" + textUrl + "\">" + textDesc + "</a>", strtext)
             '''
-                    
+            logger.debug(self.botJson['users'][user_id]['name'])
             tdata.append({
                 "text": text,
                 "name": self.botJson['users'][user_id]['name'],
