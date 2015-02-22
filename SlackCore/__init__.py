@@ -534,10 +534,10 @@ class SlackResponder(object):
         got_any = False
         
         lazyUsers = {
-            'name': {},
-            'image': {},
-            'email': {},
-            'twitter': {}
+            'name': [],
+            'image': [],
+            'email': [],
+            'twitter': []
         }
         
         for key, val in self.botJson['users'].iteritems():
