@@ -541,13 +541,13 @@ class SlackResponder(object):
         }
         
         for key, val in self.botJson['users'].iteritems():
-            if not self.botJson['users'][key]['name']:
+            if 'name' not in self.botJson['users'][key]:
                 lazyUsers['name'].append(self.botJson['users'][key])
-            if not self.botJson['users'][key]['image']:
+            if 'image' not in self.botJson['users'][key]:
                 lazyUsers['image'].append(self.botJson['users'][key])
-            if not self.botJson['users'][key]['email']:
+            if 'email' not in self.botJson['users'][key]:
                 lazyUsers['email'].append(self.botJson['users'][key])
-            if not self.botJson['users'][key]['twitter']:
+            if 'twitter' not in self.botJson['users'][key]:
                 lazyUsers['twitter'].append(self.botJson['users'][key])
         
         for no_info in ['name', 'image', 'email', 'twitter']:
