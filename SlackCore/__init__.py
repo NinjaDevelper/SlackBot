@@ -543,12 +543,16 @@ class SlackResponder(object):
         for key, val in self.botJson['users'].iteritems():
             if 'name' not in self.botJson['users'][key]:
                 lazyUsers['name'].append(self.botJson['users'][key])
+                logger.debug("No name for " + str(self.botJson['users'][key]))
             if 'image' not in self.botJson['users'][key]:
                 lazyUsers['image'].append(self.botJson['users'][key])
+                logger.debug("No image for " + str(self.botJson['users'][key]))
             if 'email' not in self.botJson['users'][key]:
                 lazyUsers['email'].append(self.botJson['users'][key])
+                logger.debug("No email for " + str(self.botJson['users'][key]))
             if 'twitter' not in self.botJson['users'][key]:
                 lazyUsers['twitter'].append(self.botJson['users'][key])
+                logger.debug("No name for " + str(self.botJson['users'][key]))
         
         for no_info in ['name', 'image', 'email', 'twitter']:
             if len(lazyUsers[no_info]) > 0:
@@ -595,6 +599,7 @@ class SlackResponder(object):
         findLatest = {}
         findPosts  = {}
         problems   = False
+        twUrl      = "http://twitter.com/"
         
         for key, val in self.botJson['updates'].iteritems():
             findPosts[key] = self.botJson['updates'][key]['ts']
@@ -653,7 +658,7 @@ class SlackResponder(object):
                 "text": text,
                 "name": self.botJson['users'][user_id]['name'],
                 "image": self.botJson['users'][user_id]['image'],
-                "twitter": self.botJson['users'][user_id]['twitter'],
+                "twitter": twUrl + str(self.botJson['users'][user_id]['twitter']),
                 "email": self.botJson['users'][user_id]['email'],
                 "ts": datetime.datetime.fromtimestamp(float(ts)).strftime('%Y-%m-%d %H:%M:%S')
             })
