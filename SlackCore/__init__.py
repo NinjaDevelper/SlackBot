@@ -530,6 +530,7 @@ class SlackResponder(object):
         return "Approved posters: " + adminList + "\n Administrators: " + superList
 
     def FindLazyUsers(self):
+        logger = logging.getLogger("SlackBot")
         self.SetupJson()
         text = ""
         got_any = False
