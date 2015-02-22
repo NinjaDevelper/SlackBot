@@ -612,16 +612,16 @@ class SlackResponder(object):
             text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
             ts   = self.botJson['updates'][key]['ts']
             ''' Reasons not to continue. We will mark a problem and skip. '''
-            if name not in self.botJson['users'][user_id]:
+            if 'name' not in self.botJson['users'][user_id]:
                 problems = True
                 continue
-            if image not in self.botJson['users'][user_id]:
+            if 'image' not in self.botJson['users'][user_id]:
                 problems = True
                 continue
-            if twitter not in self.botJson['users'][user_id]:
+            if 'twitter' not in self.botJson['users'][user_id]:
                 problems = True
                 continue
-            if email not in self.botJson['users'][user_id]:
+            if 'email' not in self.botJson['users'][user_id]:
                 problems = True
                 continue
 
