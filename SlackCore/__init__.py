@@ -336,7 +336,7 @@ class SlackResponder(object):
             self.botJson['undo'][user['user_id']] = user # Set them both to the same to start
             self.botJson['updates'][user['user_id']] = user
         self.SaveJson()
-        self.OutputTemplate(user['user_id'])
+        self.OutputTemplate(user)
         return "<@" + user['user_id'] + ">: Status update accepted, template updated."
 
 
@@ -374,7 +374,7 @@ class SlackResponder(object):
         newUser = {}
         ''' Is the rtm api token set up? If not, complain at them.'''
         if not botData.token_id:
-            self.botJson['users'][user['user_id']] = {}
+            self.botJson['users'][subject] = {}
             self.SaveJson()
             
             response += "<@" + subject + ">: I cannot access Slack to get your user info so you will need to enter it manually.\n"
@@ -416,9 +416,9 @@ class SlackResponder(object):
             userIndex = self.botJson['admins'].index(subject)
             del self.botJson['admins'][userIndex]
             if subject in self.botJson['updates']:
-                self.botJson['updates'].remove(subject)
+                del self.botJson['updates'][subject]
             self.SaveJson()
-            self.OutputTemplate(user['user_id'])
+            self.OutputTemplate(user)
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         elif subject in self.botJson['superusers']:
             logger.debug(self.botJson['superusers'].index(subject))
@@ -427,7 +427,7 @@ class SlackResponder(object):
             if subject in self.botJson['updates']:
                 self.botJson['updates'].remove(subject)
             self.SaveJson()
-            self.OutputTemplate(user['user_id'])
+            self.OutputTemplate(user)
             return "<@" + user['user_id'] + ">: User <@" + subject + "> removed."
         else:
             return "<@" + user['user_id'] + ">: Action not needed."
@@ -445,7 +445,7 @@ class SlackResponder(object):
                 return "<@" + user['user_id'] + ">: Action not needed."
             self.botJson['hidden'].append(subject)
             self.SaveJson()
-            self.OutputTemplate(user['user_id'])
+            self.OutputTemplate(user)
             return "<@" + user['user_id'] + ">: Posts by <@" + subject + "> are now hidden.\nTemplate refreshed."
 
     
@@ -461,7 +461,7 @@ class SlackResponder(object):
                 return "<@" + user['user_id'] + ">: Action not needed."
             self.botJson['hidden'].remove(subject)
             self.SaveJson()
-            self.OutputTemplate(user['user_id'])
+            self.OutputTemplate(user)
             return "<@" + user['user_id'] + ">: Updates by <@" + subject + "> are now seen.\nTemplate refreshed."
 
 
@@ -529,6 +529,7 @@ class SlackResponder(object):
         superList = ", ".join(superusers)
         return "Approved posters: " + adminList + "\n Administrators: " + superList
 
+
     def FindLazyUsers(self):
         logger = logging.getLogger("SlackBot")
         self.SetupJson()
@@ -594,9 +595,10 @@ class SlackResponder(object):
             test[output] = "%.10f" % float(test[output])
         return currency.upper() + "/" + output.upper() + ": " + test[output.lower()]
 
-    def OutputTemplate(self, postData):
+
+    def OutputTemplate(self, user):
         logger = logging.getLogger("SlackBot")
-        logger.debug(str(postData['user_id']) + " asked for a template refresh")
+        logger.debug(user['user_id'] + " asked for a template refresh")
         self.SetupJson()
         # Two stages, the first is to order the user id by timestamp, then pull in order
         findLatest = {}
@@ -673,11 +675,11 @@ class SlackResponder(object):
             template_out.close()
             
         if problems is True:
-            response  = "<@" + postData['user_id'] + ">: There was a problem outputting the template, but I did what I can.\n"
+            response  = "<@" + user['user_id'] + ">: There was a problem outputting the template, but I did what I can.\n"
             response += self.FindLazyUsers()
             return response
         else:
-            return "<@" + postData['user_id'] + ">: I have refreshed the template."
+            return "<@" + user['user_id'] + ">: I have refreshed the template."
 
 
 # Backup System

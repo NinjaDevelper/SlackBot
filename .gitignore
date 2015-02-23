@@ -3,3 +3,5 @@ slackbot.json
 data/
 backups
 test.py
+SlackCore/__init__.pyc
+BotInfo/__init__.pyc
