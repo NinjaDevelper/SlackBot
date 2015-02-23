@@ -279,7 +279,7 @@ class SlackResponder(object):
         elif request == ".undo":
             return self.UndoPost(postData)
         elif request == ".regen":
-            return self.OutputTemplate(postData['user_id'])
+            return self.OutputTemplate(postData)
         elif request == ".ping":
             return "PONG!"
         elif request == ".whoami":
@@ -544,24 +544,24 @@ class SlackResponder(object):
         
         for key, val in self.botJson['users'].iteritems():
             if 'name' not in self.botJson['users'][key]:
-                lazyUsers['name'].append(self.botJson['users'][key])
-                logger.debug("No name for " + str(self.botJson['users'][key]))
+                lazyUsers['name'].append(key)
+                logger.debug("No name for " + str(key))
             if 'image' not in self.botJson['users'][key]:
-                lazyUsers['image'].append(self.botJson['users'][key])
-                logger.debug("No image for " + str(self.botJson['users'][key]))
+                lazyUsers['image'].append(key)
+                logger.debug("No image for " + str(key))
             if 'email' not in self.botJson['users'][key]:
-                lazyUsers['email'].append(self.botJson['users'][key])
-                logger.debug("No email for " + str(self.botJson['users'][key]))
+                lazyUsers['email'].append(key)
+                logger.debug("No email for " + str(key))
             if 'twitter' not in self.botJson['users'][key]:
-                lazyUsers['twitter'].append(self.botJson['users'][key])
-                logger.debug("No name for " + str(self.botJson['users'][key]))
+                lazyUsers['twitter'].append(key)
+                logger.debug("No name for " + str(key))
         
         for no_info in ['name', 'image', 'email', 'twitter']:
             if len(lazyUsers[no_info]) > 0:
                 lazy = []
                 text += "Users without " + no_info + " set: "
                 for user_id in lazyUsers[no_info]:
-                    lazy.append("<@" + str(user_id.name) + ">")
+                    lazy.append("<@" + str(user_id) + ">")
                 text += ", ".join(lazy)
                 text += "\n"
                 got_any = True
@@ -594,8 +594,9 @@ class SlackResponder(object):
             test[output] = "%.10f" % float(test[output])
         return currency.upper() + "/" + output.upper() + ": " + test[output.lower()]
 
-    def OutputTemplate(self, user_id):
+    def OutputTemplate(self, postData):
         logger = logging.getLogger("SlackBot")
+        logger.debug(str(postData['user_id']) + " asked for a template refresh")
         self.SetupJson()
         # Two stages, the first is to order the user id by timestamp, then pull in order
         findLatest = {}
@@ -672,11 +673,11 @@ class SlackResponder(object):
             template_out.close()
             
         if problems is True:
-            response  = "<@" + user_id + ">: There was a problem outputting the template, but I did what I can.\n"
+            response  = "<@" + postData['user_id'] + ">: There was a problem outputting the template, but I did what I can.\n"
             response += self.FindLazyUsers()
             return response
         else:
-            return "<@" + user_id + ">: I have refreshed the template."
+            return "<@" + postData['user_id'] + ">: I have refreshed the template."
 
 
 # Backup System
