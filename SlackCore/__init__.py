@@ -18,6 +18,7 @@ from operator import itemgetter
 from datetime import date
 from validate_email import validate_email
 import textwrap
+import HTMLParser
 
 class PostHandler(BaseHTTPRequestHandler):
     def setup(self):
@@ -601,10 +602,14 @@ class SlackResponder(object):
         logger.debug(user['user_id'] + " asked for a template refresh")
         self.SetupJson()
         # Two stages, the first is to order the user id by timestamp, then pull in order
-        findLatest = {}
-        findPosts  = {}
-        problems   = False
-        twUrl      = "http://twitter.com/"
+        findLatest  = {}
+        findPosts   = {}
+        problems    = False
+        twUrl       = "http://twitter.com/"
+        # For Python 2.x
+        html_parser = HTMLParser.HTMLParser()
+        # For Python 3.x
+        # html_parser = html.parser.HTMLParser()
         
         for key, val in self.botJson['updates'].iteritems():
             findPosts[key] = self.botJson['updates'][key]['ts']
@@ -660,7 +665,7 @@ class SlackResponder(object):
             '''
             logger.debug(self.botJson['users'][user_id]['name'])
             tdata.append({
-                "text": text,
+                "text": html_parser.unescape(text),
                 "name": self.botJson['users'][user_id]['name'],
                 "image": self.botJson['users'][user_id]['image'],
                 "twitter": twUrl + str(self.botJson['users'][user_id]['twitter']),
