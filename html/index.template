@@ -38,7 +38,8 @@ function humanTiming ($time) {
 		<div class="user-name">
 		<a href="" tal:attributes="href user.twitter"><span tal:content="user.name" /></a>
 		</div>
-		<div class="user-text" tal:content="user.text">
+		<div class="user-text">
+        <?php echo html_entity_decode("${structure:user.text}"); ?>
 		</div>
 		<div class="user-date">
 		<?php echo humanTiming("${structure:user.ts}") . " ago"; ?>

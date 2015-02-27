@@ -101,12 +101,10 @@ class SlackResponder(object):
         "superuser": 2,
         "owner": 3
     }
-    
-    '''
+
+
     # Url regex
-    urlFixerSingle = "<((https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)>"
-    urlFixerDouble = "<((https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)|([^>]+)>"
-    '''
+    urlFixer = "<(https?:\/\/[^>]+)>"
 
 
     def __init__(self, connect=True):
@@ -126,6 +124,14 @@ class SlackResponder(object):
         self.triggers = {}
         for key, val in self.hooks.iteritems():
             self.triggers[key] = re.compile(val)
+
+        self.urlChecker = re.compile(self.urlFixer)
+        
+        # For Python 2.x
+        self.html_parser = HTMLParser.HTMLParser()
+        # For Python 3.x
+        # self.html_parser = html.parser.HTMLParser()
+
 
     def SetupJson(self):
         logger = logging.getLogger("SlackBot")
@@ -244,9 +250,6 @@ class SlackResponder(object):
                     if str(argument) == str(botData.owner_id):
                         return "<@" + postData['user_id'] + ">: Cannot perform actions on bot owner."
                     if trigger == ".add":
-                        logger.debug("JSON data: " + json.dumps(postData, indent=4))
-                        logger.debug("User to act on: " + argument)
-                        logger.debug("Class to set user at: " + userClass)
                         return self.PromoteUser(postData, argument, userClass)
                     elif trigger == ".del": # Removes from either list
                         return self.DemoteUser(postData, argument, hideUser)
@@ -325,7 +328,7 @@ class SlackResponder(object):
         @return: String to send back to the user
         '''
         self.SetupJson()
-        user['text'] = text
+        user['text'] = self.TextParser(text)
         user['ts']   = user['timestamp']
         del user['timestamp']
         self.botJson['updates'][user['user_id']] = user
@@ -340,6 +343,17 @@ class SlackResponder(object):
         self.OutputTemplate(user)
         return "<@" + user['user_id'] + ">: Status update accepted, template updated."
 
+
+    def TextParser(self, text):
+        ''' Parses info from slack, e.g. urls '''
+        logger = logging.getLogger("SlackBot")
+        logger.debug("Looking for a URL match...'" + str(text) + "'")
+        # Single
+        for m in self.urlChecker.findall(text):
+            text = text.replace("<" + m + ">",
+                                "<a href=\\\"" + m + "\\\">" + m + "</a>")
+        
+        return text
 
     def PromoteUser(self, user, subject, level):
         ''' Promotes a user to a higher level so they can post updates, or at
@@ -606,10 +620,6 @@ class SlackResponder(object):
         findPosts   = {}
         problems    = False
         twUrl       = "http://twitter.com/"
-        # For Python 2.x
-        html_parser = HTMLParser.HTMLParser()
-        # For Python 3.x
-        # html_parser = html.parser.HTMLParser()
         
         for key, val in self.botJson['updates'].iteritems():
             findPosts[key] = self.botJson['updates'][key]['ts']
@@ -640,32 +650,9 @@ class SlackResponder(object):
                 problems = True
                 continue
 
-            '''
-            # Does it need a url parsed?
-            # Single
-            test = self.urlCheckerSingle.match(text)
-            if test:
-                textUrl = test.group(1)
-                logger.debug("Text To Submit: " + text)
-                logger.debug("Url Portion: " + textUrl)
-                text = self.urlChecker.sub("<a href=\"" + textUrl + "\">" + textUrl + "</a>", text)
-            else:
-                # Double
-                test = self.urlCheckerDouble.match(text)
-                if test:
-                    textUrl = test.group(1)
-                    textDesc = test.group(2)
-                    logger.debug("Text To Submit: " + text)
-                    logger.debug(test.group(0))                 
-                    logger.debug(test.group(1))
-                    logger.debug(test.group(2))
-                    logger.debug("Url Portion: " + textUrl)
-                    logger.debug("Description Portion: " + textDesc)    
-                    text = self.urlChecker.sub("<a href=\"" + textUrl + "\">" + textDesc + "</a>", strtext)
-            '''
             logger.debug(self.botJson['users'][user_id]['name'])
             tdata.append({
-                "text": html_parser.unescape(text),
+                "text": self.html_parser.unescape(text),
                 "name": self.botJson['users'][user_id]['name'],
                 "image": self.botJson['users'][user_id]['image'],
                 "twitter": twUrl + str(self.botJson['users'][user_id]['twitter']),
