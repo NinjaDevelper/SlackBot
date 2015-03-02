@@ -351,7 +351,8 @@ class SlackResponder(object):
         # Single
         for m in self.urlChecker.findall(text):
             text = text.replace("<" + m + ">",
-                                "<a href=\\\"" + m + "\\\">" + m + "</a>")
+                                "<a href=\\\"" + m + "\\\">" + 
+                                self.html_parser.escape(m) + "</a>")
         
         return text
 
@@ -635,6 +636,8 @@ class SlackResponder(object):
                 continue
             
             text = str(self.botJson['updates'][key]['text'].encode("utf-8"))
+            text = text.replace("\"", "\\\"")
+            logger.debug("Text to output: " + text)
             ts   = self.botJson['updates'][key]['ts']
             ''' Reasons not to continue. We will mark a problem and skip. '''
             if 'name' not in self.botJson['users'][user_id]:
@@ -652,7 +655,7 @@ class SlackResponder(object):
 
             logger.debug(self.botJson['users'][user_id]['name'])
             tdata.append({
-                "text": self.html_parser.unescape(text),
+                "text": cgi.escape(text), #self.html_parser.escape(text),
                 "name": self.botJson['users'][user_id]['name'],
                 "image": self.botJson['users'][user_id]['image'],
                 "twitter": twUrl + str(self.botJson['users'][user_id]['twitter']),
